@@ -3,7 +3,6 @@
 #![allow(dead_code)]
 #![feature(type_alias_impl_trait)]
 #![feature(generic_associated_types)]
-#![feature(associated_type_defaults)]
 //! Ector is an open source async, no-alloc actor framework for embedded devices. It integrates with [embassy](https://github.com/embassy-rs/embassy), the embedded async project.
 //!
 //! # Actor System
@@ -16,10 +15,8 @@
 //!
 //! ```
 //! #![macro_use]
-//! #![allow(incomplete_features)]
 //! #![feature(generic_associated_types)]
 //! #![feature(type_alias_impl_trait)]
-//! #![feature(const_fn_trait_bound)]
 //!
 //! # use ector::*;
 //!
