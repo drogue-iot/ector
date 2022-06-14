@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "ector",
+    "macros",
+]
+resolver = "2"
+
+[patch.crates-io]
+embassy = { git = "https://github.com/embassy-rs/embassy.git", rev = "77c7d8f31b89d13117a7294842d60f02950fdd23" }
