@@ -1,5 +1,5 @@
 use crate::{Actor, ActorSpawner, Address, Inbox};
-use atomic_polyfill::{AtomicBool, AtomicU8, Ordering};
+use atomic_polyfill::{AtomicBool, Ordering};
 use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
@@ -26,54 +26,20 @@ impl ActorSpawner for TestSpawner {
     }
 }
 
-const NEW: u8 = 0;
-const CONFIGURED: u8 = 1;
-
-pub struct DeviceContext<D: 'static> {
-    device: Forever<D>,
-    state: AtomicU8,
-}
-
-impl<D: 'static> DeviceContext<D> {
-    pub const fn new() -> Self {
-        Self {
-            device: Forever::new(),
-            state: AtomicU8::new(NEW),
-        }
-    }
-
-    pub fn configure(&'static self, device: D) -> &'static D {
-        match self.state.fetch_add(1, Ordering::Relaxed) {
-            NEW => self.device.put(device),
-            _ => {
-                panic!("Context already configured");
-            }
-        }
-    }
-}
-
-impl<D: 'static> Drop for DeviceContext<D> {
-    fn drop(&mut self) {
-        if let CONFIGURED = self.state.load(Ordering::Acquire) {
-            panic!("Context must be configured before it is dropped");
-        }
-    }
-}
-
 /// A test context that can execute test for a given device
 pub struct TestContext<D: 'static> {
     runner: &'static TestRunner,
-    device: &'static DeviceContext<D>,
+    device: &'static Forever<D>,
 }
 
 impl<D> TestContext<D> {
-    pub fn new(runner: &'static TestRunner, device: &'static DeviceContext<D>) -> Self {
+    pub fn new(runner: &'static TestRunner, device: &'static Forever<D>) -> Self {
         Self { runner, device }
     }
 
     /// Configure context with a device
     pub fn configure(&mut self, device: D) -> &'static D {
-        self.device.configure(device)
+        self.device.put(device)
     }
 
     /// Create a test pin that can be used in tests
