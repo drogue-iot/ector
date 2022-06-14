@@ -186,7 +186,7 @@ fn transform_sig(sig: &mut Signature) {
     for (_, arg) in sig.inputs.iter_mut().enumerate() {
         match arg {
             FnArg::Receiver(arg) => {
-                let s = arg.span().clone();
+                let s = arg.span();
                 let Receiver { reference, .. } = arg;
                 if let Some((_, r)) = reference.as_mut() {
                     r.replace(Lifetime::new("'m", s));
@@ -196,7 +196,7 @@ fn transform_sig(sig: &mut Signature) {
             }
 
             FnArg::Typed(arg) => {
-                let s = arg.span().clone();
+                let s = arg.span();
                 if let Pat::Ident(ident) = &mut *arg.pat {
                     ident.by_ref = None;
                 }

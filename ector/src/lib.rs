@@ -67,10 +67,8 @@
 pub(crate) mod fmt;
 
 mod actor;
-mod device;
 
 pub use actor::*;
-pub use device::*;
 pub use ector_macros::*;
 
 #[cfg(feature = "std")]

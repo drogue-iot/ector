@@ -48,7 +48,7 @@ pub trait Inbox<M> {
     ///
     /// This method returns None if the channel is closed.
     #[must_use = "Must set response for message"]
-    fn next<'m>(&'m mut self) -> Self::NextFuture<'m>;
+    fn next(&'_ mut self) -> Self::NextFuture<'_>;
 }
 
 impl<'ch, M, const QUEUE_SIZE: usize> Inbox<M> for Receiver<'ch, ActorMutex, M, QUEUE_SIZE>
@@ -56,7 +56,7 @@ where
     M: 'ch,
 {
     type NextFuture<'m> = impl Future<Output = M> + 'm where Self: 'm;
-    fn next<'m>(&'m mut self) -> Self::NextFuture<'m> {
+    fn next(&mut self) -> Self::NextFuture<'_> {
         async move { self.recv().await }
     }
 }
@@ -223,6 +223,7 @@ where
         Address::new(self.channel.sender().into())
     }
 
+    #[allow(clippy::type_complexity)]
     pub(crate) fn initialize(
         &'static self,
         actor: A,

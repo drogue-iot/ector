@@ -1,26 +1,20 @@
-use crate::device::DeviceContext;
 use crate::{Actor, ActorSpawner, Address, Inbox};
+use atomic_polyfill::{AtomicBool, AtomicU8, Ordering};
 use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
-use core::sync::atomic::{AtomicBool, Ordering};
 use core::task::{Context, Poll};
 use embassy::channel::signal::Signal;
 use embassy::executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy::util::Forever;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal_async::digital::Wait;
 use std::cell::UnsafeCell;
 use std::marker::PhantomData;
 use std::vec::Vec;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct TestSpawner;
-
-impl TestSpawner {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 impl ActorSpawner for TestSpawner {
     fn spawn<F: Future<Output = ()> + 'static>(
@@ -29,6 +23,40 @@ impl ActorSpawner for TestSpawner {
         _: F,
     ) -> Result<(), SpawnError> {
         Ok(())
+    }
+}
+
+const NEW: u8 = 0;
+const CONFIGURED: u8 = 1;
+
+pub struct DeviceContext<D: 'static> {
+    device: Forever<D>,
+    state: AtomicU8,
+}
+
+impl<D: 'static> DeviceContext<D> {
+    pub const fn new() -> Self {
+        Self {
+            device: Forever::new(),
+            state: AtomicU8::new(NEW),
+        }
+    }
+
+    pub fn configure(&'static self, device: D) -> &'static D {
+        match self.state.fetch_add(1, Ordering::Relaxed) {
+            NEW => self.device.put(device),
+            _ => {
+                panic!("Context already configured");
+            }
+        }
+    }
+}
+
+impl<D: 'static> Drop for DeviceContext<D> {
+    fn drop(&mut self) {
+        if let CONFIGURED = self.state.load(Ordering::Acquire) {
+            panic!("Context must be configured before it is dropped");
+        }
     }
 }
 
@@ -176,7 +204,7 @@ impl InnerPin {
         self.value.load(Ordering::SeqCst)
     }
 
-    fn wait_changed<'m>(&'m self) -> SignalFuture<'m> {
+    fn wait_changed(&self) -> SignalFuture<'_> {
         SignalFuture {
             signal: &self.signal,
         }
@@ -207,25 +235,25 @@ impl embedded_hal_1::digital::ErrorType for TestPin {
 
 impl Wait for TestPin {
     type WaitForHighFuture<'m> = SignalFuture<'m>;
-    fn wait_for_high<'m>(&'m mut self) -> Self::WaitForHighFuture<'m> {
+    fn wait_for_high(&mut self) -> Self::WaitForHighFuture<'_> {
         self.inner.wait_changed()
     }
 
     type WaitForLowFuture<'m> = SignalFuture<'m>;
-    fn wait_for_low<'m>(&'m mut self) -> Self::WaitForLowFuture<'m> {
+    fn wait_for_low(&mut self) -> Self::WaitForLowFuture<'_> {
         self.inner.wait_changed()
     }
     type WaitForRisingEdgeFuture<'m> = SignalFuture<'m>;
-    fn wait_for_rising_edge<'m>(&'m mut self) -> Self::WaitForRisingEdgeFuture<'m> {
+    fn wait_for_rising_edge(&mut self) -> Self::WaitForRisingEdgeFuture<'_> {
         self.inner.wait_changed()
     }
     type WaitForFallingEdgeFuture<'m> = SignalFuture<'m>;
-    fn wait_for_falling_edge<'m>(&'m mut self) -> Self::WaitForFallingEdgeFuture<'m> {
+    fn wait_for_falling_edge(&mut self) -> Self::WaitForFallingEdgeFuture<'_> {
         self.inner.wait_changed()
     }
 
     type WaitForAnyEdgeFuture<'m> = SignalFuture<'m>;
-    fn wait_for_any_edge<'m>(&'m mut self) -> Self::WaitForAnyEdgeFuture<'m> {
+    fn wait_for_any_edge(&mut self) -> Self::WaitForAnyEdgeFuture<'_> {
         self.inner.wait_changed()
     }
 }
@@ -246,14 +274,16 @@ pub struct TestSignal {
     value: RefCell<Option<TestMessage>>,
 }
 
-impl TestSignal {
-    pub fn new() -> Self {
+impl Default for TestSignal {
+    fn default() -> Self {
         Self {
             signal: Signal::new(),
             value: RefCell::new(None),
         }
     }
+}
 
+impl TestSignal {
     pub fn signal(&self, value: TestMessage) {
         self.value.borrow_mut().replace(value);
         self.signal.signal(())
@@ -263,7 +293,7 @@ impl TestSignal {
         *self.value.borrow()
     }
 
-    pub fn wait_signaled<'m>(&'m self) -> SignalFuture<'m> {
+    pub fn wait_signaled(&self) -> SignalFuture<'_> {
         SignalFuture {
             signal: &self.signal,
         }
@@ -280,8 +310,8 @@ pub struct TestRunner {
     done: AtomicBool,
 }
 
-impl TestRunner {
-    pub fn new() -> Self {
+impl Default for TestRunner {
+    fn default() -> Self {
         let signaler = &*Box::leak(Box::new(Signaler::new()));
         Self {
             inner: UnsafeCell::new(raw::Executor::new(
@@ -298,7 +328,9 @@ impl TestRunner {
             done: AtomicBool::new(false),
         }
     }
+}
 
+impl TestRunner {
     pub fn initialize(&'static self, init: impl FnOnce(Spawner)) {
         init(unsafe { (&*self.inner.get()).spawner() });
     }
@@ -322,7 +354,7 @@ impl TestRunner {
     /// Create a signal that can be used in tests
     pub fn signal(&'static self) -> &'static TestSignal {
         let signals = unsafe { &mut *self.signals.get() };
-        signals.push(TestSignal::new());
+        signals.push(TestSignal::default());
         &signals[signals.len() - 1]
     }
 
