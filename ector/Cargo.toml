@@ -6,6 +6,14 @@ authors = [
 edition = "2018"
 name = "ector"
 version = "0.1.0"
+description = "Ector is an open source async, no-alloc actor framework for embedded devices."
+documentation = "https://docs.rs/ector"
+readme = "README.md"
+homepage = "https://drogue.io"
+repository = "https://github.com/drogue-iot/ector"
+license = "Apache-2.0"
+keywords = ["embedded", "async", "actor"]
+exclude = [".github"]
 
 [lib]
 doctest = false
