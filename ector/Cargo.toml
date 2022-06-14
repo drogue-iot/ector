@@ -3,12 +3,12 @@ authors = [
     "Ulf Lilleengen <lulf@redhat.com>",
     "Bob McWhirter <bmcwhirt@redhat.com>"
 ]
-edition = "2018"
+edition = "2021"
 name = "ector"
 version = "0.1.0"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."
 documentation = "https://docs.rs/ector"
-readme = "README.md"
+readme = "../README.md"
 homepage = "https://drogue.io"
 repository = "https://github.com/drogue-iot/ector"
 license = "Apache-2.0"
@@ -25,7 +25,7 @@ atomic-polyfill = "0.1"
 log = { version = "0.4", optional = true }
 defmt = { version = "0.3", optional = true }
 
-ector-macros = { path = "../macros" }
+ector-macros = { version = "0.1.0", path = "../macros" }
 embedded-hal = { version = "0.2", features = ["unproven"] }
 embedded-hal-1 = { package = "embedded-hal", version = "1.0.0-alpha.8"}
 embedded-hal-async = { version = "0.1.0-alpha.1" }
