@@ -6,4 +6,4 @@ members = [
 resolver = "2"
 
 [patch.crates-io]
-embassy = { git = "https://github.com/embassy-rs/embassy.git", rev = "77c7d8f31b89d13117a7294842d60f02950fdd23" }
+embassy = { git = "https://github.com/embassy-rs/embassy.git", rev = "5fef527764f1b694a9213050f4a187339dcc049b"}

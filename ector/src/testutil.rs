@@ -3,7 +3,6 @@ use atomic_polyfill::{AtomicBool, Ordering};
 use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
-use core::task::{Context, Poll};
 use embassy::channel::signal::Signal;
 use embassy::executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
 use embassy::util::Forever;
@@ -169,29 +168,6 @@ impl InnerPin {
     fn get_value(&self) -> bool {
         self.value.load(Ordering::SeqCst)
     }
-
-    fn wait_changed(&self) -> SignalFuture<'_> {
-        SignalFuture {
-            signal: &self.signal,
-        }
-    }
-}
-
-/// A future that awaits a signal
-pub struct SignalFuture<'m> {
-    signal: &'m Signal<()>,
-}
-
-impl<'m> Future for SignalFuture<'m> {
-    type Output = Result<(), Infallible>;
-    fn poll(self: core::pin::Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let result = self.signal.poll_wait(cx);
-        if let Poll::Ready(r) = result {
-            Poll::Ready(Ok(r))
-        } else {
-            Poll::Pending
-        }
-    }
 }
 
 use core::convert::Infallible;
@@ -200,27 +176,43 @@ impl embedded_hal_1::digital::ErrorType for TestPin {
 }
 
 impl Wait for TestPin {
-    type WaitForHighFuture<'m> = SignalFuture<'m>;
+    type WaitForHighFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
     fn wait_for_high(&mut self) -> Self::WaitForHighFuture<'_> {
-        self.inner.wait_changed()
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 
-    type WaitForLowFuture<'m> = SignalFuture<'m>;
+    type WaitForLowFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
     fn wait_for_low(&mut self) -> Self::WaitForLowFuture<'_> {
-        self.inner.wait_changed()
-    }
-    type WaitForRisingEdgeFuture<'m> = SignalFuture<'m>;
-    fn wait_for_rising_edge(&mut self) -> Self::WaitForRisingEdgeFuture<'_> {
-        self.inner.wait_changed()
-    }
-    type WaitForFallingEdgeFuture<'m> = SignalFuture<'m>;
-    fn wait_for_falling_edge(&mut self) -> Self::WaitForFallingEdgeFuture<'_> {
-        self.inner.wait_changed()
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 
-    type WaitForAnyEdgeFuture<'m> = SignalFuture<'m>;
+    type WaitForRisingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_rising_edge(&mut self) -> Self::WaitForRisingEdgeFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
+    }
+    type WaitForFallingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_falling_edge(&mut self) -> Self::WaitForFallingEdgeFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
+    }
+
+    type WaitForAnyEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
     fn wait_for_any_edge(&mut self) -> Self::WaitForAnyEdgeFuture<'_> {
-        self.inner.wait_changed()
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 }
 
@@ -259,10 +251,8 @@ impl TestSignal {
         *self.value.borrow()
     }
 
-    pub fn wait_signaled(&self) -> SignalFuture<'_> {
-        SignalFuture {
-            signal: &self.signal,
-        }
+    pub async fn wait_signaled(&self) {
+        self.signal.wait().await
     }
 }
 

@@ -3,7 +3,7 @@ use embassy::util::Forever;
 
 use embassy::{
     blocking_mutex::raw::NoopRawMutex,
-    channel::channel::{Channel, DynamicSender, Receiver, TrySendError},
+    channel::mpmc::{Channel, DynamicSender, Receiver, TrySendError},
     executor::{raw::TaskStorage as Task, SpawnError, Spawner},
 };
 
