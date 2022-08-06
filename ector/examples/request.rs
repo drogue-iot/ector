@@ -3,10 +3,10 @@
 #![feature(type_alias_impl_trait)]
 
 use ector::*;
-use embassy::time::{Duration, Timer};
+use embassy_executor::time::{Duration, Timer};
 
-#[embassy::main]
-async fn main(s: embassy::executor::Spawner) {
+#[embassy_executor::main]
+async fn main(s: embassy_executor::executor::Spawner) {
     // Example of request response
     static SERVER: ActorContext<Server> = ActorContext::new();
 

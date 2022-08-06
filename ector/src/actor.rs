@@ -1,11 +1,11 @@
 use core::future::Future;
-use embassy::util::Forever;
+use embassy_util::Forever;
 
-use embassy::{
+use embassy_util::{
     blocking_mutex::raw::NoopRawMutex,
     channel::mpmc::{Channel, DynamicSender, Receiver, TrySendError},
-    executor::{raw::TaskStorage as Task, SpawnError, Spawner},
 };
+use embassy_executor::executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 
 type ActorMutex = NoopRawMutex;
 

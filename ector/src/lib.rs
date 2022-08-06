@@ -52,8 +52,8 @@
 //! }
 //!
 //! /// The entry point of the application is using the embassy runtime.
-//! #[embassy::main]
-//! async fn main(spawner: embassy::executor::Spawner) {
+//! #[embassy_executor::main]
+//! async fn main(spawner: embassy_executor::executor::Spawner) {
 //!
 //!     // Mounting the Actor will spawn an embassy task
 //!     let addr = ector::spawn_actor!(spawner, COUNTER, Counter, Counter { count  0 });
