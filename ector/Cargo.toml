@@ -19,7 +19,8 @@ exclude = [".github"]
 doctest = false
 
 [dependencies]
-embassy = { version = "0.1.0", default-features = false, features = ["executor-agnostic", "nightly"] }
+embassy-executor = { version = "0.1.0", default-features = false, features = ["nightly"] }
+embassy-util = { version = "0.1.0", default-features = false, features = ["nightly"] }
 atomic-polyfill = "0.1"
 
 log = { version = "0.4", optional = true }
@@ -32,10 +33,10 @@ embedded-hal-async = { version = "0.1.0-alpha.1" }
 futures = { version = "0.3", default-features = false }
 
 [dev-dependencies]
-embassy = { version = "0.1.0", features = ["std", "time", "time-tick-1mhz"]}
+embassy-executor = { version = "0.1.0", features = ["std", "time", "time-tick-1mhz"]}
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 
 [features]
 default = [ "std", "log", "time" ]
-std = ["embassy/std", "embassy/time"]
+std = ["embassy-executor/std", "embassy-executor/time"]
 time = []

@@ -3,14 +3,14 @@
 #![feature(type_alias_impl_trait)]
 
 use ector::*;
-use embassy::time::{Duration, Ticker};
+use embassy_executor::time::{Duration, Ticker};
 use futures::{
     future::{select, Either},
     pin_mut, StreamExt,
 };
 
-#[embassy::main]
-async fn main(s: embassy::executor::Spawner) {
+#[embassy_executor::main]
+async fn main(s: embassy_executor::executor::Spawner) {
     // Example of circular references
     static PINGER: ActorContext<Pinger> = ActorContext::new();
     static PONGER: ActorContext<Ponger> = ActorContext::new();

@@ -6,7 +6,7 @@
 mod tests {
     use core::future::Future;
     use ector::*;
-    use embassy::executor::Spawner;
+    use embassy_executor::executor::Spawner;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::{sync::mpsc, thread, time::Duration};
 
@@ -40,7 +40,7 @@ mod tests {
             }
         }
 
-        #[embassy::main]
+        #[embassy_executor::main]
         async fn main(spawner: Spawner) {
             static ACTOR: ActorContext<MyActor> = ActorContext::new();
 
