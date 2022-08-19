@@ -288,13 +288,13 @@ impl Default for TestRunner {
 
 impl TestRunner {
     pub fn initialize(&'static self, init: impl FnOnce(Spawner)) {
-        init(unsafe { (&*self.inner.get()).spawner() });
+        init(unsafe { (*self.inner.get()).spawner() });
     }
 
     pub fn run_until_idle(&'static self) {
         self.signaler.prepare();
         while self.signaler.should_run() {
-            unsafe { (&*self.inner.get()).poll() };
+            unsafe { (*self.inner.get()).poll() };
         }
     }
 
