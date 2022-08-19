@@ -5,7 +5,7 @@ use embassy_util::{
     blocking_mutex::raw::NoopRawMutex,
     channel::mpmc::{Channel, DynamicSender, Receiver, TrySendError},
 };
-use embassy_executor::executor::{raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 
 type ActorMutex = NoopRawMutex;
 

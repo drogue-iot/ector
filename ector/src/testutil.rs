@@ -4,7 +4,7 @@ use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
 use embassy_util::channel::signal::Signal;
-use embassy_executor::executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
 use embassy_util::Forever;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal_async::digital::Wait;
