@@ -110,7 +110,7 @@ pub(crate) fn generate_actor(input: &mut Item) {
     input.items.push(ImplItem::Type(on_mount_future));
 
     let mut lifetimes = CollectLifetimes::new("'impl", input.impl_token.span);
-    lifetimes.visit_type_mut(&mut *input.self_ty);
+    lifetimes.visit_type_mut(&mut input.self_ty);
     lifetimes.visit_path_mut(&mut input.trait_.as_mut().unwrap().1);
     let params = &input.generics.params;
     let elided = lifetimes.elided;

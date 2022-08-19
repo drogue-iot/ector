@@ -4,7 +4,7 @@ use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
 use embassy_util::channel::signal::Signal;
-use embassy_executor::executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
 use embassy_util::Forever;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal_async::digital::Wait;
@@ -288,13 +288,13 @@ impl Default for TestRunner {
 
 impl TestRunner {
     pub fn initialize(&'static self, init: impl FnOnce(Spawner)) {
-        init(unsafe { (&*self.inner.get()).spawner() });
+        init(unsafe { (*self.inner.get()).spawner() });
     }
 
     pub fn run_until_idle(&'static self) {
         self.signaler.prepare();
         while self.signaler.should_run() {
-            unsafe { (&*self.inner.get()).poll() };
+            unsafe { (*self.inner.get()).poll() };
         }
     }
 

@@ -6,7 +6,7 @@
 mod tests {
     use core::future::Future;
     use ector::*;
-    use embassy_executor::executor::Spawner;
+    use embassy_executor::Spawner;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::{sync::mpsc, thread, time::Duration};
 
