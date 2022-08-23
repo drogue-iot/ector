@@ -1,11 +1,11 @@
 use core::future::Future;
 use static_cell::StaticCell;
 
+use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 use embassy_sync::{
     blocking_mutex::raw::NoopRawMutex,
     channel::{Channel, DynamicSender, Receiver, TrySendError},
 };
-use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 
 type ActorMutex = NoopRawMutex;
 
