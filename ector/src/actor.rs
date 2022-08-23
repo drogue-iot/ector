@@ -1,9 +1,9 @@
 use core::future::Future;
-use embassy_util::Forever;
+use static_cell::StaticCell;
 
-use embassy_util::{
+use embassy_sync::{
     blocking_mutex::raw::NoopRawMutex,
-    channel::mpmc::{Channel, DynamicSender, Receiver, TrySendError},
+    channel::{Channel, DynamicSender, Receiver, TrySendError},
 };
 use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 
@@ -179,7 +179,7 @@ where
     task: Task<
         A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
     >,
-    actor: Forever<A>,
+    actor: StaticCell<A>,
     channel: Channel<ActorMutex, A::Message<'static>, QUEUE_SIZE>,
 }
 
@@ -201,7 +201,7 @@ where
     pub const fn new() -> Self {
         Self {
             task: Task::new(),
-            actor: Forever::new(),
+            actor: StaticCell::new(),
             channel: Channel::new(),
         }
     }
@@ -231,7 +231,7 @@ where
         Address<A::Message<'static>>,
         A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
     ) {
-        let actor = self.actor.put(actor);
+        let actor = self.actor.init(actor);
         let sender = self.channel.sender();
         let address = Address::new(sender.into());
         let future = actor.on_mount(address.clone(), self.channel.receiver());

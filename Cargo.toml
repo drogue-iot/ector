@@ -6,6 +6,6 @@ members = [
 resolver = "2"
 
 [patch.crates-io]
-embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", rev = "aefa5275a2ab2cac6caef599e7adb76ce1beeddd" }
-embassy-time = { git = "https://github.com/embassy-rs/embassy.git", rev = "aefa5275a2ab2cac6caef599e7adb76ce1beeddd" }
-embassy-util = { git = "https://github.com/embassy-rs/embassy.git", rev = "aefa5275a2ab2cac6caef599e7adb76ce1beeddd" }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", rev = "cb9f0ef5b800ce4a22cde1805e0eb88425f1e07b" }
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", rev = "cb9f0ef5b800ce4a22cde1805e0eb88425f1e07b" }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", rev = "cb9f0ef5b800ce4a22cde1805e0eb88425f1e07b" }

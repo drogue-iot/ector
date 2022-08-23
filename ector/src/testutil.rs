@@ -3,9 +3,9 @@ use atomic_polyfill::{AtomicBool, Ordering};
 use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
-use embassy_util::channel::signal::Signal;
+use embassy_sync::signal::Signal;
 use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
-use embassy_util::Forever;
+use static_cell::StaticCell;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal_async::digital::Wait;
 use std::cell::UnsafeCell;
@@ -28,17 +28,17 @@ impl ActorSpawner for TestSpawner {
 /// A test context that can execute test for a given device
 pub struct TestContext<D: 'static> {
     runner: &'static TestRunner,
-    device: &'static Forever<D>,
+    device: &'static StaticCell<D>,
 }
 
 impl<D> TestContext<D> {
-    pub fn new(runner: &'static TestRunner, device: &'static Forever<D>) -> Self {
+    pub fn new(runner: &'static TestRunner, device: &'static StaticCell<D>) -> Self {
         Self { runner, device }
     }
 
     /// Configure context with a device
     pub fn configure(&mut self, device: D) -> &'static D {
-        self.device.put(device)
+        self.device.init(device)
     }
 
     /// Create a test pin that can be used in tests
