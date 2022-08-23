@@ -21,7 +21,7 @@ doctest = false
 [dependencies]
 embassy-executor = { version = "0.1.0", default-features = false, features = ["nightly"] }
 embassy-time = { version = "0.1.0", optional = true, default-features = false, features = ["nightly"] }
-embassy-util = { version = "0.1.0", default-features = false, features = ["nightly"] }
+embassy-sync = { version = "0.1.0", default-features = false, features = ["nightly"] }
 atomic-polyfill = "0.1"
 
 log = { version = "0.4", optional = true }
@@ -32,6 +32,7 @@ embedded-hal = { version = "0.2", features = ["unproven"] }
 embedded-hal-1 = { package = "embedded-hal", version = "1.0.0-alpha.8"}
 embedded-hal-async = { version = "0.1.0-alpha.1" }
 futures = { version = "0.3", default-features = false }
+static_cell = "1.0.0"
 
 [dev-dependencies]
 embassy-executor = { version = "0.1.0", features = ["std", "integrated-timers"]}
