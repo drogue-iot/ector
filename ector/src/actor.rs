@@ -74,6 +74,7 @@ where
     state: DynamicSender<'static, M>,
 }
 
+// NOTE: This is wrong :/
 unsafe impl<M> Send for Address<M> where M: 'static {}
 
 impl<M> Address<M> {
