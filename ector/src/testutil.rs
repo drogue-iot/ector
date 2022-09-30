@@ -4,13 +4,15 @@ use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
 use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
-use embassy_sync::signal::Signal;
+use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal_async::digital::Wait;
 use static_cell::StaticCell;
 use std::cell::UnsafeCell;
 use std::marker::PhantomData;
 use std::vec::Vec;
+
+type CS = CriticalSectionRawMutex;
 
 #[derive(Clone, Copy, Default)]
 pub struct TestSpawner;
@@ -131,7 +133,7 @@ pub struct TestPin {
 
 struct InnerPin {
     value: AtomicBool,
-    signal: Signal<()>,
+    signal: Signal<CS, ()>,
 }
 
 impl Copy for TestPin {}
@@ -228,7 +230,7 @@ impl InputPin for TestPin {
 
 /// A generic signal construct that can be used across actor and test states.
 pub struct TestSignal {
-    signal: Signal<()>,
+    signal: Signal<CS, ()>,
     value: RefCell<Option<TestMessage>>,
 }
 

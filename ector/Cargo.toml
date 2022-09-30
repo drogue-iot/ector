@@ -28,8 +28,8 @@ defmt = { version = "0.3", optional = true }
 
 ector-macros = { version = "0.1.0", path = "../macros" }
 embedded-hal = { version = "0.2", features = ["unproven"] }
-embedded-hal-1 = { package = "embedded-hal", version = "1.0.0-alpha.8"}
-embedded-hal-async = { version = "0.1.0-alpha.1" }
+embedded-hal-1 = { package = "embedded-hal", version = "=1.0.0-alpha.9"}
+embedded-hal-async = { version = "=0.1.0-alpha.2" }
 futures = { version = "0.3", default-features = false }
 static_cell = "1.0.0"
 

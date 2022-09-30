@@ -18,7 +18,9 @@ type ActorMutex = NoopRawMutex;
 /// per ActorContext.
 pub trait Actor: Sized {
     /// The message type that this actor expects to receive from its inbox.
-    type Message<'m>;
+    type Message<'m>
+    where
+        Self: 'm;
 
     /// The future type returned in `on_mount`, usually derived from an `async move` block
     /// in the implementation using `impl Trait`.
