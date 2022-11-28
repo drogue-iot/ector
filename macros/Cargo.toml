@@ -1,11 +1,11 @@
 [package]
-authors = [
+	authors = [
     "Ulf Lilleengen <lulf@redhat.com>",
     "Bob McWhirter <bmcwhirt@redhat.com>"
 ]
 edition = "2021"
 name = "ector-macros"
-version = "0.1.0"
+version = "0.1.1"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."
 documentation = "https://docs.rs/ector-macros"
 readme = "../README.md"
