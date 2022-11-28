@@ -4,8 +4,3 @@ members = [
     "macros",
 ]
 resolver = "2"
-
-[patch.crates-io]
-embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", tag = "embassy-time-v0.1.0" }
-embassy-time = { git = "https://github.com/embassy-rs/embassy.git", tag = "embassy-time-v0.1.0" }
-embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", tag = "embassy-time-v0.1.0" }
