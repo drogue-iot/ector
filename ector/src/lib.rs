@@ -2,7 +2,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 #![feature(type_alias_impl_trait)]
-#![doc = include_str!("../../README.md")]
+#![doc = include_str!("../README.md")]
 pub(crate) mod fmt;
 
 mod actor;
