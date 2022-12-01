@@ -1,10 +1,11 @@
-use core::future::Future;
-use static_cell::StaticCell;
+use {core::future::Future, static_cell::StaticCell};
 
-use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
-use embassy_sync::{
-    blocking_mutex::raw::NoopRawMutex,
-    channel::{Channel, DynamicSender, Receiver, TrySendError},
+use {
+    embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner},
+    embassy_sync::{
+        blocking_mutex::raw::NoopRawMutex,
+        channel::{Channel, DynamicSender, Receiver, TrySendError},
+    },
 };
 
 type ActorMutex = NoopRawMutex;
@@ -41,25 +42,20 @@ pub trait Actor: Sized {
 }
 
 pub trait Inbox<M> {
-    type NextFuture<'m>: Future<Output = M>
-    where
-        Self: 'm;
-
     /// Retrieve the next message in the inbox. A default value to use as a response must be
     /// provided to ensure a response is always given.
     ///
     /// This method returns None if the channel is closed.
     #[must_use = "Must set response for message"]
-    fn next(&'_ mut self) -> Self::NextFuture<'_>;
+    async fn next(&mut self) -> M;
 }
 
 impl<'ch, M, const QUEUE_SIZE: usize> Inbox<M> for Receiver<'ch, ActorMutex, M, QUEUE_SIZE>
 where
     M: 'ch,
 {
-    type NextFuture<'m> = impl Future<Output = M> + 'm where Self: 'm;
-    fn next(&mut self) -> Self::NextFuture<'_> {
-        async move { self.recv().await }
+    async fn next(&mut self) -> M {
+        self.recv().await
     }
 }
 
@@ -243,9 +239,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::testutil::*;
-    use core::pin::Pin;
+    use {super::*, crate::testutil::*, core::pin::Pin};
     //use futures::pin_mut;
 
     #[test]
