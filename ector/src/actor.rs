@@ -1,7 +1,5 @@
-use core::future::Future;
-use static_cell::StaticCell;
+use {core::future::Future, static_cell::StaticCell};
 
-use embassy_executor::{raw::TaskStorage as Task, SpawnError, Spawner};
 use embassy_sync::{
     blocking_mutex::raw::NoopRawMutex,
     channel::{Channel, DynamicSender, Receiver, TrySendError},
@@ -22,44 +20,28 @@ pub trait Actor: Sized {
     where
         Self: 'm;
 
-    /// The future type returned in `on_mount`, usually derived from an `async move` block
-    /// in the implementation using `impl Trait`.
-    type OnMountFuture<'m, M>: Future<Output = ()>
-    where
-        Self: 'm,
-        M: Inbox<Self::Message<'m>> + 'm;
-
     /// Called when an actor is mounted (activated). The actor will be provided with the
     /// address to itself, and an inbox used to receive incoming messages.
-    fn on_mount<'m, M>(
-        &'m mut self,
-        _: Address<Self::Message<'m>>,
-        _: M,
-    ) -> Self::OnMountFuture<'m, M>
+    async fn on_mount<'m, M>(&'m mut self, _: Address<Self::Message<'m>>, _: M) -> !
     where
         M: Inbox<Self::Message<'m>> + 'm;
 }
 
 pub trait Inbox<M> {
-    type NextFuture<'m>: Future<Output = M>
-    where
-        Self: 'm;
-
     /// Retrieve the next message in the inbox. A default value to use as a response must be
     /// provided to ensure a response is always given.
     ///
     /// This method returns None if the channel is closed.
     #[must_use = "Must set response for message"]
-    fn next(&'_ mut self) -> Self::NextFuture<'_>;
+    async fn next(&mut self) -> M;
 }
 
 impl<'ch, M, const QUEUE_SIZE: usize> Inbox<M> for Receiver<'ch, ActorMutex, M, QUEUE_SIZE>
 where
     M: 'ch,
 {
-    type NextFuture<'m> = impl Future<Output = M> + 'm where Self: 'm;
-    fn next(&mut self) -> Self::NextFuture<'_> {
-        async move { self.recv().await }
+    async fn next(&mut self) -> M {
+        self.recv().await
     }
 }
 
@@ -154,33 +136,12 @@ impl<M, R> AsMut<M> for Request<M, R> {
     }
 }
 
-pub trait ActorSpawner: Clone + Copy {
-    fn spawn<F: Future<Output = ()> + 'static>(
-        &self,
-        task: &'static Task<F>,
-        future: F,
-    ) -> Result<(), SpawnError>;
-}
-
-impl ActorSpawner for Spawner {
-    fn spawn<F: Future<Output = ()> + 'static>(
-        &self,
-        task: &'static Task<F>,
-        future: F,
-    ) -> Result<(), SpawnError> {
-        Spawner::spawn(self, Task::spawn(task, move || future))
-    }
-}
-
 /// A context for an actor, providing signal and message queue. The QUEUE_SIZE parameter
 /// is a const generic parameter, and controls how many messages an Actor can handle.
 pub struct ActorContext<A, const QUEUE_SIZE: usize = 1>
 where
     A: Actor + 'static,
 {
-    task: Task<
-        A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
-    >,
     actor: StaticCell<A>,
     channel: Channel<ActorMutex, A::Message<'static>, QUEUE_SIZE>,
 }
@@ -202,50 +163,27 @@ where
 {
     pub const fn new() -> Self {
         Self {
-            task: Task::new(),
             actor: StaticCell::new(),
             channel: Channel::new(),
         }
     }
 
-    /// Mount the underlying actor and initialize the channel.
-    pub fn mount<S: ActorSpawner>(
-        &'static self,
-        spawner: S,
-        actor: A,
-    ) -> Address<A::Message<'static>> {
-        let (address, future) = self.initialize(actor);
-        let task = &self.task;
-        // TODO: Map to error?
-        spawner.spawn(task, future).unwrap();
-        address
+    /// Mount the underlying actor and run.
+    pub async fn mount(&'static self, actor: A) -> ! {
+        let actor = self.actor.init(actor);
+        let address = Address::new(self.channel.sender().into());
+        let receiver = self.channel.receiver();
+        actor.on_mount(address, receiver).await
     }
 
     pub fn address(&'static self) -> Address<A::Message<'static>> {
         Address::new(self.channel.sender().into())
     }
-
-    #[allow(clippy::type_complexity)]
-    pub(crate) fn initialize(
-        &'static self,
-        actor: A,
-    ) -> (
-        Address<A::Message<'static>>,
-        A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
-    ) {
-        let actor = self.actor.init(actor);
-        let sender = self.channel.sender();
-        let address = Address::new(sender.into());
-        let future = actor.on_mount(address.clone(), self.channel.receiver());
-        (address, future)
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::testutil::*;
-    use core::pin::Pin;
+    use {super::*, crate::testutil::*, core::pin::Pin};
     //use futures::pin_mut;
 
     #[test]

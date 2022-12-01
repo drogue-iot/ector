@@ -1,15 +1,19 @@
 #![macro_use]
+#![feature(async_fn_in_trait)]
 #![feature(type_alias_impl_trait)]
 
-use ector::*;
-use embassy_time::{Duration, Timer};
+use {
+    ector::*,
+    embassy_time::{Duration, Timer},
+};
+
+static SERVER: ActorContext<Server> = ActorContext::new();
 
 #[embassy_executor::main]
 async fn main(s: embassy_executor::Spawner) {
     // Example of request response
-    static SERVER: ActorContext<Server> = ActorContext::new();
-
-    let server = SERVER.mount(s, Server);
+    s.spawn(actor_task(Server)).unwrap();
+    let server = SERVER.address();
 
     loop {
         let r = server.request("Hello").await;
@@ -18,12 +22,20 @@ async fn main(s: embassy_executor::Spawner) {
     }
 }
 
+#[embassy_executor::task]
+async fn actor_task(a: Server) {
+    SERVER.mount(a).await;
+}
+
 pub struct Server;
 
-#[actor]
 impl Actor for Server {
     type Message<'m> = Request<&'static str, &'static str>;
-    async fn on_mount<M>(&mut self, _: Address<Request<&'static str, &'static str>>, mut inbox: M)
+    async fn on_mount<'m, M>(
+        &'m mut self,
+        _: Address<Request<&'static str, &'static str>>,
+        mut inbox: M,
+    ) -> !
     where
         M: Inbox<Self::Message<'m>> + 'm,
     {

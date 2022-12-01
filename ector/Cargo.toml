@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "ector"
-version = "0.1.1"
+version = "0.2.0"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."
 documentation = "https://docs.rs/ector"
 readme = "../README.md"
@@ -39,3 +39,8 @@ critical-section = { version = "1.1", features = ["std"] }
 default = [ "std", "log", "time" ]
 std = ["embassy-executor/std", "embassy-executor/integrated-timers", "embassy-time/std", "critical-section/std"]
 time = []
+
+
+[patch.crates-io]
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git",  rev = "2fa2c1a6fe9c79f11f7382a63ba6a13fe1bae1be" }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", rev = "2fa2c1a6fe9c79f11f7382a63ba6a13fe1bae1be" }

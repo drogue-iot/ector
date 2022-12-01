@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "ector",
-    "macros",
 ]
 resolver = "2"

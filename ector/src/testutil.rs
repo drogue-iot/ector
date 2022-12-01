@@ -1,16 +1,14 @@
-use crate::{Actor, ActorSpawner, Address, Inbox};
-use atomic_polyfill::{AtomicBool, Ordering};
-use core::cell::RefCell;
-use core::future::Future;
-use core::pin::Pin;
-use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
-use embedded_hal::digital::v2::InputPin;
-use embedded_hal_async::digital::Wait;
-use static_cell::StaticCell;
-use std::cell::UnsafeCell;
-use std::marker::PhantomData;
-use std::vec::Vec;
+use {
+    crate::{Actor, ActorSpawner, Address, Inbox},
+    atomic_polyfill::{AtomicBool, Ordering},
+    core::{cell::RefCell, future::Future, pin::Pin},
+    embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner},
+    embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal},
+    embedded_hal::digital::v2::InputPin,
+    embedded_hal_async::digital::Wait,
+    static_cell::StaticCell,
+    std::{cell::UnsafeCell, marker::PhantomData, vec::Vec},
+};
 
 type CS = CriticalSectionRawMutex;
 
