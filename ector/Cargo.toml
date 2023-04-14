@@ -23,9 +23,9 @@ log = { version = "0.4", optional = true }
 defmt = { version = "0.3", optional = true }
 
 ector-macros = { version = "0.1.1", path = "../macros" }
-embedded-hal = { version = "0.2", features = ["unproven"] }
-embedded-hal-1 = { package = "embedded-hal", version = "=1.0.0-alpha.9"}
-embedded-hal-async = { version = "=0.1.0-alpha.3" }
+embedded-hal = { version = "0.2", features = ["unproven"], optional = true }
+embedded-hal-1 = { package = "embedded-hal", version = "=1.0.0-alpha.9", optional = true }
+embedded-hal-async = { version = "=0.1.0-alpha.3", optional = true }
 futures = { version = "0.3", default-features = false }
 static_cell = "1.0.0"
 
@@ -38,4 +38,5 @@ critical-section = { version = "1.1", features = ["std"] }
 [features]
 default = [ "std", "log", "time" ]
 std = ["embassy-executor/std", "embassy-executor/integrated-timers", "embassy-time/std", "critical-section/std"]
+test-util = [ "dep:embedded-hal", "dep:embedded-hal-1", "dep:embedded-hal-async"]
 time = []
