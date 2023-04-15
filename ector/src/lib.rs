@@ -11,7 +11,7 @@ mod actor;
 
 pub use {actor::*, ector_macros::*};
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", feature = "test-util"))]
 pub mod testutil;
 
 /// Spawn an actor given a spawner and the actors name, type and instance.
