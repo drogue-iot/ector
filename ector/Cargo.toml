@@ -34,6 +34,7 @@ embassy-executor = { version = "0.1.0", default-features = false, features = ["s
 embassy-time = { version = "0.1.0", default-features = false, features = ["std", "nightly"] }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 critical-section = { version = "1.1", features = ["std"] }
+ector = { path = ".", features = ["std", "log", "time", "test-util"] }
 
 [features]
 default = [ "std", "log", "time" ]
