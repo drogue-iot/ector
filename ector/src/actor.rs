@@ -1,3 +1,6 @@
+use embassy_executor::SendSpawner;
+use embassy_sync::blocking_mutex::raw::RawMutex;
+
 use {core::future::Future, static_cell::StaticCell};
 
 use {
@@ -7,8 +10,6 @@ use {
         channel::{Channel, DynamicSender, Receiver, TrySendError},
     },
 };
-
-type ActorMutex = NoopRawMutex;
 
 /// Trait that each actor must implement. An actor defines a message type
 /// that it acts on, and an implementation of `on_mount` which is invoked
@@ -50,9 +51,10 @@ pub trait Inbox<M> {
     async fn next(&mut self) -> M;
 }
 
-impl<'ch, M, const QUEUE_SIZE: usize> Inbox<M> for Receiver<'ch, ActorMutex, M, QUEUE_SIZE>
+impl<'ch, M, MUT, const QUEUE_SIZE: usize> Inbox<M> for Receiver<'ch, MUT, M, QUEUE_SIZE>
 where
     M: 'ch,
+    MUT: RawMutex,
 {
     async fn next(&mut self) -> M {
         self.recv().await
@@ -168,33 +170,70 @@ impl ActorSpawner for Spawner {
     }
 }
 
-/// A context for an actor, providing signal and message queue. The QUEUE_SIZE parameter
-/// is a const generic parameter, and controls how many messages an Actor can handle.
-pub struct ActorContext<A, const QUEUE_SIZE: usize = 1>
-where
-    A: Actor + 'static,
-{
-    task: Task<
-        A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
-    >,
-    actor: StaticCell<A>,
-    channel: Channel<ActorMutex, A::Message<'static>, QUEUE_SIZE>,
+pub trait SendActorSpawner: Clone + Copy {
+    fn spawn<F: Future<Output = ()> + 'static + Send>(
+        &self,
+        task: &'static Task<F>,
+        future: F,
+    ) -> Result<(), SpawnError>;
 }
 
-unsafe impl<A, const QUEUE_SIZE: usize> Sync for ActorContext<A, QUEUE_SIZE> where A: Actor {}
+impl SendActorSpawner for SendSpawner {
+    fn spawn<F: Future<Output = ()> + 'static + Send>(
+        &self,
+        task: &'static Task<F>,
+        future: F,
+    ) -> Result<(), SpawnError> {
+        SendSpawner::spawn(self, Task::spawn(task, move || future))
+    }
+}
 
-impl<A, const QUEUE_SIZE: usize> Default for ActorContext<A, QUEUE_SIZE>
+impl<T> SendActorSpawner for T
+where
+    T: ActorSpawner,
+{
+    fn spawn<F: Future<Output = ()> + 'static + Send>(
+        &self,
+        task: &'static Task<F>,
+        future: F,
+    ) -> Result<(), SpawnError> {
+        Self::spawn(self, task, future)
+    }
+}
+
+/// A context for an actor, providing signal and message queue. The QUEUE_SIZE parameter
+/// is a const generic parameter, and controls how many messages an Actor can handle.
+pub struct ActorContext<A, MUT = NoopRawMutex, const QUEUE_SIZE: usize = 1>
+where
+    A: Actor + 'static,
+    MUT: RawMutex + 'static,
+{
+    task: Task<A::OnMountFuture<'static, Receiver<'static, MUT, A::Message<'static>, QUEUE_SIZE>>>,
+    actor: StaticCell<A>,
+    channel: Channel<MUT, A::Message<'static>, QUEUE_SIZE>,
+}
+
+unsafe impl<A, MUT, const QUEUE_SIZE: usize> Sync for ActorContext<A, MUT, QUEUE_SIZE>
 where
     A: Actor,
+    MUT: RawMutex,
+{
+}
+
+impl<A, MUT, const QUEUE_SIZE: usize> Default for ActorContext<A, MUT, QUEUE_SIZE>
+where
+    A: Actor,
+    MUT: RawMutex,
 {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<A, const QUEUE_SIZE: usize> ActorContext<A, QUEUE_SIZE>
+impl<A, MUT, const QUEUE_SIZE: usize> ActorContext<A, MUT, QUEUE_SIZE>
 where
     A: Actor,
+    MUT: RawMutex,
 {
     pub const fn new() -> Self {
         Self {
@@ -217,6 +256,30 @@ where
         address
     }
 
+    /// Mount the underlying actor and initialize the channel.
+    pub fn mount_send<S: SendActorSpawner>(
+        &'static self,
+        spawner: S,
+        actor: A,
+    ) -> Address<A::Message<'static>>
+    where
+        <A as Actor>::OnMountFuture<
+            'static,
+            embassy_sync::channel::Receiver<
+                'static,
+                MUT,
+                <A as Actor>::Message<'static>,
+                QUEUE_SIZE,
+            >,
+        >: Send,
+    {
+        let (address, future) = self.initialize(actor);
+        let task = &self.task;
+        // TODO: Map to error?
+        spawner.spawn(task, future).unwrap();
+        address
+    }
+
     pub fn address(&'static self) -> Address<A::Message<'static>> {
         Address::new(self.channel.sender().into())
     }
@@ -227,7 +290,7 @@ where
         actor: A,
     ) -> (
         Address<A::Message<'static>>,
-        A::OnMountFuture<'static, Receiver<'static, ActorMutex, A::Message<'static>, QUEUE_SIZE>>,
+        A::OnMountFuture<'static, Receiver<'static, MUT, A::Message<'static>, QUEUE_SIZE>>,
     ) {
         let actor = self.actor.init(actor);
         let sender = self.channel.sender();
@@ -244,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_sync_notifications() {
-        static ACTOR: ActorContext<DummyActor, 1> = ActorContext::new();
+        static ACTOR: ActorContext<DummyActor, NoopRawMutex, 1> = ActorContext::new();
 
         let (address, mut actor_fut) = ACTOR.initialize(DummyActor::new());
 

@@ -8,7 +8,7 @@
 pub(crate) mod fmt;
 
 mod actor;
-
+pub use embassy_sync;
 pub use {actor::*, ector_macros::*};
 
 #[cfg(all(feature = "std", feature = "test-util"))]
@@ -20,5 +20,25 @@ macro_rules! spawn_actor {
     ($spawner:ident, $name:ident, $ty:ty, $instance:expr) => {{
         static $name: ::ector::ActorContext<$ty> = ::ector::ActorContext::new();
         $name.mount($spawner, $instance)
+    }};
+
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{
+        static $name: ::ector::ActorContext<$ty, $mutex> = ::ector::ActorContext::new();
+        $name.mount_send($spawner, $instance)
+    }};
+
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:literal) => {{
+        static $name: ::ector::ActorContext<
+            $ty,
+            embassy_sync::blocking_mutex::raw::NoopRawMutex,
+            $queue_size,
+        > = ::ector::ActorContext::new();
+        $name.mount($spawner, $instance)
+    }};
+
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:literal) => {{
+        static $name: ::ector::ActorContext<$ty, $mutex, $queue_size> =
+            ::ector::ActorContext::new();
+        $name.mount_send($spawner, $instance)
     }};
 }
