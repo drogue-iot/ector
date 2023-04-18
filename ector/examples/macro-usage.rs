@@ -1,10 +1,7 @@
 #![macro_use]
 #![feature(type_alias_impl_trait)]
 
-use ector::{
-    mutex::{CriticalSectionRawMutex, NoopRawMutex},
-    *,
-};
+use ector::{mutex::CriticalSectionRawMutex, *};
 use embassy_time::{Duration, Timer};
 
 #[embassy_executor::main]
@@ -25,8 +22,6 @@ async fn main(s: embassy_executor::Spawner) {
 }
 
 pub struct Server;
-
-unsafe impl Send for Server {}
 
 #[actor]
 impl Actor for Server {

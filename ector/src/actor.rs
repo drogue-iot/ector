@@ -93,9 +93,12 @@ impl<M> Address<M> {
     }
 }
 
-impl<M, R> Address<Request<M, R>> {
+impl<M, R, MUT> Address<Request<M, R, MUT>>
+where
+    MUT: RawMutex,
+{
     pub async fn request(&self, message: M) -> R {
-        let reply_to: Channel<NoopRawMutex, R, 1> = Channel::new();
+        let reply_to: Channel<MUT, R, 1> = Channel::new();
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
         let message = Request::new(message, unsafe { core::mem::transmute(&reply_to) });
@@ -112,18 +115,22 @@ impl<M> Clone for Address<M> {
     }
 }
 
-type ReplyTo<T> = Channel<NoopRawMutex, T, 1>;
+type ReplyTo<T, MUT> = Channel<MUT, T, 1>;
 
-pub struct Request<M, R>
+pub struct Request<M, R, MUT = NoopRawMutex>
 where
     R: 'static,
+    MUT: RawMutex + 'static,
 {
     message: Option<M>,
-    reply_to: &'static ReplyTo<R>,
+    reply_to: &'static ReplyTo<R, MUT>,
 }
 
-impl<M, R> Request<M, R> {
-    fn new(message: M, reply_to: &'static ReplyTo<R>) -> Self {
+impl<M, R, MUT> Request<M, R, MUT>
+where
+    MUT: RawMutex,
+{
+    fn new(message: M, reply_to: &'static ReplyTo<R, MUT>) -> Self {
         Self {
             message: Some(message),
             reply_to,
@@ -140,13 +147,19 @@ impl<M, R> Request<M, R> {
     }
 }
 
-impl<M, R> AsRef<M> for Request<M, R> {
+impl<M, R, MUT> AsRef<M> for Request<M, R, MUT>
+where
+    MUT: RawMutex,
+{
     fn as_ref(&self) -> &M {
         self.message.as_ref().unwrap()
     }
 }
 
-impl<M, R> AsMut<M> for Request<M, R> {
+impl<M, R, MUT> AsMut<M> for Request<M, R, MUT>
+where
+    MUT: RawMutex,
+{
     fn as_mut(&mut self) -> &mut M {
         self.message.as_mut().unwrap()
     }
