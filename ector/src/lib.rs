@@ -8,7 +8,6 @@
 pub(crate) mod fmt;
 
 mod actor;
-pub use embassy_sync;
 pub use {actor::*, ector_macros::*};
 
 #[cfg(all(feature = "std", feature = "test-util"))]
