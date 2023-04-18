@@ -10,6 +10,11 @@ pub(crate) mod fmt;
 mod actor;
 pub use {actor::*, ector_macros::*};
 
+// Reexport mutex types
+pub mod mutex {
+    pub use embassy_sync::blocking_mutex::raw::*;
+}
+
 #[cfg(all(feature = "std", feature = "test-util"))]
 pub mod testutil;
 
@@ -27,11 +32,8 @@ macro_rules! spawn_actor {
     }};
 
     ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:literal) => {{
-        static $name: ::ector::ActorContext<
-            $ty,
-            embassy_sync::blocking_mutex::raw::NoopRawMutex,
-            $queue_size,
-        > = ::ector::ActorContext::new();
+        static $name: ::ector::ActorContext<$ty, ::ector::mutex::NoopRawMutex, $queue_size> =
+            ::ector::ActorContext::new();
         $name.mount($spawner, $instance)
     }};
 

@@ -11,9 +11,6 @@ use {
     },
 };
 
-// Reexport mutex types
-pub use embassy_sync::blocking_mutex::raw::*;
-
 /// Trait that each actor must implement. An actor defines a message type
 /// that it acts on, and an implementation of `on_mount` which is invoked
 /// when the actor is started.
