@@ -270,21 +270,13 @@ where
     }
 
     /// Mount the underlying actor and initialize the channel.
-    pub fn mount_send<S: SendActorSpawner>(
+    pub fn mount_send<'a, S: SendActorSpawner>(
         &'static self,
         spawner: S,
         actor: A,
     ) -> Address<A::Message<'static>>
     where
-        <A as Actor>::OnMountFuture<
-            'static,
-            embassy_sync::channel::Receiver<
-                'static,
-                MUT,
-                <A as Actor>::Message<'static>,
-                QUEUE_SIZE,
-            >,
-        >: Send,
+        A::OnMountFuture<'static, Receiver<'static, MUT, A::Message<'static>, QUEUE_SIZE>>: Send,
     {
         let (address, future) = self.initialize(actor);
         let task = &self.task;

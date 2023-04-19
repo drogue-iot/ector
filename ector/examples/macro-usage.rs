@@ -14,7 +14,7 @@ async fn main(s: embassy_executor::Spawner) {
     let servers = [server_1, server_2, server_3, server_4];
     loop {
         for (i, server) in servers.iter().enumerate() {
-            let r = server.request("Hello").await;
+            let r = server.request("Hello".to_string()).await;
             println!("Server {} returned {}", i, r);
             Timer::after(Duration::from_secs(1)).await;
         }
@@ -25,10 +25,10 @@ pub struct Server;
 
 #[actor]
 impl Actor for Server {
-    type Message<'m> = Request<&'static str, &'static str, CriticalSectionRawMutex>;
+    type Message<'m> = Request<String, String, CriticalSectionRawMutex>;
     async fn on_mount<M>(
         &mut self,
-        _: Address<Request<&'static str, &'static str, CriticalSectionRawMutex>>,
+        _: Address<Request<String, String, CriticalSectionRawMutex>>,
         mut inbox: M,
     ) where
         M: Inbox<Self::Message<'m>> + 'm,
