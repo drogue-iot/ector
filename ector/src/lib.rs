@@ -48,15 +48,58 @@ macro_rules! actor {
     }};
 
     ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:literal) => {{
+        static CONTEXT: ::ector::ActorContext<$ty, $mutex, $queue_size> =
+            ::ector::ActorContext::new();
+        ::ector::spawn_context!(
+            CONTEXT,
+            $spawner,
+            $name,
+            $ty,
+            $instance,
+            $mutex,
+            $queue_size
+        )
+    }};
+}
+
+#[macro_export]
+macro_rules! spawn_context {
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr) => {{
+        ::ector::spawn_context!(
+            $context,
+            $spawner,
+            $name,
+            $ty,
+            $instance,
+            ::ector::mutex::NoopRawMutex,
+            1
+        )
+    }};
+
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{
+        ::ector::spawn_context!($context, $spawner, $name, $ty, $instance, $mutex, 1)
+    }};
+
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:literal) => {{
+        ::ector::spawn_context!(
+            $context,
+            $spawner,
+            $name,
+            $ty,
+            $instance,
+            ::ector::mutex::NoopRawMutex,
+            $queue_size
+        )
+    }};
+
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:literal) => {{
         #[embassy_executor::task]
         async fn $name(a: &'static ::ector::ActorContext<$ty, $mutex, $queue_size>, instance: $ty) {
             a.mount(instance).await
         }
 
-        static CONTEXT: ::ector::ActorContext<$ty, $mutex, $queue_size> =
-            ::ector::ActorContext::new();
-        let address = CONTEXT.address();
-        $spawner.spawn($name(&CONTEXT, $instance)).unwrap();
+        let address = $context.address();
+        $spawner.spawn($name(&$context, $instance)).unwrap();
         address
     }};
 }
