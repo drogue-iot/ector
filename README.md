@@ -31,10 +31,9 @@ pub struct Counter {
 pub struct Increment;
 
 /// An Actor implements the Actor trait.
-#[ector::actor]
 impl Actor for Counter {
     /// The Message associated type is the message types that the Actor can receive.
-    type Message<'m> = Increment;
+    type Message = Increment;
 
     /// An actor has to implement the on_mount method. on_mount() is invoked when the internals of an actor is ready,
     /// and the actor can begin to receive messages from an inbox.
@@ -42,7 +41,7 @@ impl Actor for Counter {
     /// The following arguments are provided:
     /// * The address to 'self'
     /// * An inbox from which the actor can receive messages
-    async fn on_mount<M>(&mut self, _: Address<Self::Message<'m>>, mut inbox: M)
+    async fn on_mount<M>(&mut self, _: Address<Self::Message<'m>>, mut inbox: M) -> !
         where M: Inbox<Self::Message<'m>> {
     {
         loop {
@@ -58,7 +57,7 @@ impl Actor for Counter {
  async fn main(spawner: embassy::executor::Spawner) {
 
      // Mounting the Actor will spawn an embassy task
-     let addr = ector::spawn_actor!(spawner, COUNTER, Counter, Counter { count  0 });
+     let addr = ector::actor!(spawner, counter, Counter, Counter { count  0 });
 
      // The actor address may be used in any embassy task to communicate with the actor.
      let _ = addr.notify(Increment).await;

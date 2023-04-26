@@ -62,6 +62,7 @@ macro_rules! actor {
     }};
 }
 
+/// Spawn an ActorContext for a given spawner
 #[macro_export]
 macro_rules! spawn_context {
     ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr) => {{
