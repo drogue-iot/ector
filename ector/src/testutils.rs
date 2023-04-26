@@ -1,31 +1,16 @@
-use crate::{Actor, ActorSpawner, Address, Inbox};
+use crate::{Actor, Address, Inbox};
 use atomic_polyfill::{AtomicBool, Ordering};
 use core::cell::RefCell;
 use core::future::Future;
 use core::pin::Pin;
-use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy_executor::{raw, Spawner};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
-use embedded_hal::digital::v2::InputPin;
-use embedded_hal_async::digital::Wait;
 use static_cell::StaticCell;
 use std::cell::UnsafeCell;
 use std::marker::PhantomData;
 use std::vec::Vec;
 
 type CS = CriticalSectionRawMutex;
-
-#[derive(Clone, Copy, Default)]
-pub struct TestSpawner;
-
-impl ActorSpawner for TestSpawner {
-    fn spawn<F: Future<Output = ()> + 'static>(
-        &self,
-        _: &'static Task<F>,
-        _: F,
-    ) -> Result<(), SpawnError> {
-        Ok(())
-    }
-}
 
 /// A test context that can execute test for a given device
 pub struct TestContext<D: 'static> {
@@ -75,20 +60,14 @@ impl DummyActor {
 }
 
 impl Actor for DummyActor {
-    type Message<'m> = TestMessage;
-    type OnMountFuture<'m, M> = impl Future<Output = ()> + 'm where M: 'm + Inbox<TestMessage>;
-    fn on_mount<'m, M>(
-        &'m mut self,
-        _: Address<TestMessage>,
-        mut inbox: M,
-    ) -> Self::OnMountFuture<'m, M>
+    type Message = TestMessage;
+
+    async fn on_mount<M>(&mut self, _: Address<TestMessage>, mut inbox: M) -> !
     where
-        M: Inbox<TestMessage> + 'm,
+        M: Inbox<TestMessage>,
     {
-        async move {
-            loop {
-                inbox.next().await;
-            }
+        loop {
+            inbox.next().await;
         }
     }
 }
@@ -105,23 +84,15 @@ impl TestHandler {
 }
 
 impl Actor for TestHandler {
-    type Message<'m> = TestMessage;
-    type OnMountFuture<'m, M> = impl Future<Output = ()> + 'm
+    type Message = TestMessage;
+
+    async fn on_mount<M>(&mut self, _: Address<TestMessage>, mut inbox: M) -> !
     where
-        M: 'm + Inbox<TestMessage>;
-    fn on_mount<'m, M>(
-        &'m mut self,
-        _: Address<TestMessage>,
-        mut inbox: M,
-    ) -> Self::OnMountFuture<'m, M>
-    where
-        M: Inbox<TestMessage> + 'm,
+        M: Inbox<TestMessage>,
     {
-        async move {
-            loop {
-                let message = inbox.next().await;
-                self.on_message.signal(message);
-            }
+        loop {
+            let message = inbox.next().await;
+            self.on_message.signal(message);
         }
     }
 }
@@ -169,62 +140,6 @@ impl InnerPin {
 
     fn get_value(&self) -> bool {
         self.value.load(Ordering::SeqCst)
-    }
-}
-
-use core::convert::Infallible;
-impl embedded_hal_1::digital::ErrorType for TestPin {
-    type Error = Infallible;
-}
-
-impl Wait for TestPin {
-    type WaitForHighFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
-    fn wait_for_high(&mut self) -> Self::WaitForHighFuture<'_> {
-        async move {
-            self.inner.signal.wait().await;
-            Ok(())
-        }
-    }
-
-    type WaitForLowFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
-    fn wait_for_low(&mut self) -> Self::WaitForLowFuture<'_> {
-        async move {
-            self.inner.signal.wait().await;
-            Ok(())
-        }
-    }
-
-    type WaitForRisingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
-    fn wait_for_rising_edge(&mut self) -> Self::WaitForRisingEdgeFuture<'_> {
-        async move {
-            self.inner.signal.wait().await;
-            Ok(())
-        }
-    }
-    type WaitForFallingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
-    fn wait_for_falling_edge(&mut self) -> Self::WaitForFallingEdgeFuture<'_> {
-        async move {
-            self.inner.signal.wait().await;
-            Ok(())
-        }
-    }
-
-    type WaitForAnyEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
-    fn wait_for_any_edge(&mut self) -> Self::WaitForAnyEdgeFuture<'_> {
-        async move {
-            self.inner.signal.wait().await;
-            Ok(())
-        }
-    }
-}
-
-impl InputPin for TestPin {
-    type Error = ();
-    fn is_high(&self) -> Result<bool, ()> {
-        Ok(self.inner.get_value())
-    }
-    fn is_low(&self) -> Result<bool, ()> {
-        Ok(!self.inner.get_value())
     }
 }
 
@@ -349,11 +264,8 @@ impl Signaler {
     }
 }
 
-static mut ALARM_AT: u64 = u64::MAX;
-static mut NEXT_ALARM_ID: u8 = 0;
-
 // Perform a process step for an Actor, processing a single message
-pub fn step_actor(actor_fut: &mut impl Future<Output = ()>) {
+pub fn step_actor<R>(actor_fut: &mut impl Future<Output = R>) {
     let waker = futures::task::noop_waker_ref();
     let mut cx = std::task::Context::from_waker(waker);
     let _ = unsafe { Pin::new_unchecked(&mut *actor_fut) }.poll(&mut cx);
