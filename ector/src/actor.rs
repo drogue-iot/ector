@@ -127,11 +127,17 @@ where
 /// when appropriate bounds are met to provide method-like invocations.
 pub type DynamicAddress<M> = DynamicSender<'static, M>;
 
+/// Type alias over a [DynamicAddress] using a [Request] as message
+pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
+
 /// A handle to another actor for dispatching messages.
 ///
 /// Individual actor implementations may augment the `Address` object
 /// when appropriate bounds are met to provide method-like invocations.
 pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
+
+/// Type alias over a [Address] using a [Request] as message
+pub type RequestAddress<M, R, MUT, const N: usize = 1> = Sender<'static, MUT, Request<M, R>, N>;
 
 pub struct Request<M, R>
 where
