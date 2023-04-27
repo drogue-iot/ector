@@ -1,9 +1,10 @@
 #![macro_use]
 #![feature(type_alias_impl_trait)]
+#![feature(async_fn_in_trait)]
+#![allow(incomplete_features)]
 
 #[cfg(feature = "std")]
 mod tests {
-    use core::future::Future;
     use ector::*;
     use embassy_executor::Spawner;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -19,38 +20,30 @@ mod tests {
 
         pub struct Add(u32);
         impl Actor for MyActor {
-            type Message<'m> = Add;
-            type OnMountFuture<'m, M> = impl Future<Output = ()> + 'm where M: 'm + Inbox<Add>;
+            type Message = Add;
 
-            fn on_mount<'m, M>(
-                &'m mut self,
-                _: Address<Add>,
-                mut inbox: M,
-            ) -> Self::OnMountFuture<'m, M>
+            async fn on_mount<'m, M>(&'m mut self, _: Address<Add>, mut inbox: M) -> !
             where
-                M: Inbox<Add> + 'm,
+                M: Inbox<Add>,
             {
-                async move {
-                    loop {
-                        let message = inbox.next().await;
-                        self.value.fetch_add(message.0, Ordering::SeqCst);
-                    }
+                loop {
+                    let message = inbox.next().await;
+                    self.value.fetch_add(message.0, Ordering::SeqCst);
                 }
             }
         }
 
         #[embassy_executor::main]
-        async fn main(spawner: Spawner) {
+        async fn main(_s: Spawner) {
             static ACTOR: ActorContext<MyActor> = ActorContext::new();
 
-            let a_addr = ACTOR.mount(
-                spawner,
-                MyActor {
-                    value: &INITIALIZED,
-                },
-            );
-
+            let a_addr = ACTOR.address();
             let _ = a_addr.try_notify(Add(10));
+            ACTOR
+                .mount(MyActor {
+                    value: &INITIALIZED,
+                })
+                .await;
         }
 
         std::thread::spawn(move || {
