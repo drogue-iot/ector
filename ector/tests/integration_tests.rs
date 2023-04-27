@@ -30,7 +30,7 @@ mod tests {
         impl Actor for MyActor {
             type Message = Add;
 
-            async fn on_mount<'m, M>(&'m mut self, _: Address<Add>, mut inbox: M) -> !
+            async fn on_mount<'m, M>(&'m mut self, _: DynamicAddress<Add>, mut inbox: M) -> !
             where
                 M: Inbox<Add>,
             {
@@ -45,7 +45,7 @@ mod tests {
         async fn main(_s: Spawner) {
             static ACTOR: ActorContext<MyActor> = ActorContext::new();
 
-            let a_addr = ACTOR.address();
+            let a_addr = ACTOR.dyn_address();
             let _ = a_addr.try_notify(Add(10));
             ACTOR
                 .mount(MyActor {

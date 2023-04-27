@@ -1,5 +1,5 @@
 use {
-    crate::{Actor, Address, Inbox},
+    crate::{Actor, DynamicAddress, Inbox},
     atomic_polyfill::{AtomicBool, Ordering},
     core::{cell::RefCell, future::Future, pin::Pin},
     embassy_executor::{raw, Spawner},
@@ -60,7 +60,7 @@ impl DummyActor {
 impl Actor for DummyActor {
     type Message = TestMessage;
 
-    async fn on_mount<M>(&mut self, _: Address<TestMessage>, mut inbox: M) -> !
+    async fn on_mount<M>(&mut self, _: DynamicAddress<TestMessage>, mut inbox: M) -> !
     where
         M: Inbox<TestMessage>,
     {
@@ -84,7 +84,7 @@ impl TestHandler {
 impl Actor for TestHandler {
     type Message = TestMessage;
 
-    async fn on_mount<M>(&mut self, _: Address<TestMessage>, mut inbox: M) -> !
+    async fn on_mount<M>(&mut self, _: DynamicAddress<TestMessage>, mut inbox: M) -> !
     where
         M: Inbox<TestMessage>,
     {
