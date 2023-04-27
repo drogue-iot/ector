@@ -1,8 +1,10 @@
 #![macro_use]
 #![feature(type_alias_impl_trait)]
 
-use ector::*;
-use embassy_time::{Duration, Timer};
+use {
+    ector::*,
+    embassy_time::{Duration, Timer},
+};
 
 #[embassy_executor::main]
 async fn main(s: embassy_executor::Spawner) {

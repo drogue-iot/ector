@@ -1,11 +1,13 @@
 #![macro_use]
 #![feature(type_alias_impl_trait)]
 
-use ector::*;
-use embassy_time::{Duration, Ticker};
-use futures::{
-    future::{select, Either},
-    pin_mut, StreamExt,
+use {
+    ector::*,
+    embassy_time::{Duration, Ticker},
+    futures::{
+        future::{select, Either},
+        pin_mut,
+    },
 };
 
 #[embassy_executor::main]
