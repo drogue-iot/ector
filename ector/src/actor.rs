@@ -131,7 +131,7 @@ pub type DynamicAddress<M> = DynamicSender<'static, M>;
 ///
 /// Individual actor implementations may augment the `Address` object
 /// when appropriate bounds are met to provide method-like invocations.
-pub type Address<M, MUT = NoopRawMutex, const N: usize = 1> = Sender<'static, MUT, M, N>;
+pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
 
 pub struct Request<M, R>
 where
