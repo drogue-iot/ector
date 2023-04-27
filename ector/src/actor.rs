@@ -1,4 +1,5 @@
-use {embassy_executor::SendSpawner, embassy_sync::blocking_mutex::raw::RawMutex};
+use embassy_executor::SendSpawner;
+use embassy_sync::blocking_mutex::raw::RawMutex;
 
 use {core::future::Future, static_cell::StaticCell};
 

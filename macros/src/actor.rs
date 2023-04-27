@@ -1,15 +1,11 @@
-use {
-    proc_macro2::{Span, TokenStream},
-    quote::{quote, quote_spanned, ToTokens},
-    syn::{
-        parse::{Error, Parse, ParseStream, Result},
-        parse_quote, parse_quote_spanned,
-        punctuated::Punctuated,
-        spanned::Spanned,
-        visit_mut::{self, VisitMut},
-        Attribute, Block, FnArg, GenericArgument, GenericParam, ImplItem, ImplItemType, ItemImpl,
-        Lifetime, Pat, Receiver, Signature, Token, Type, TypeReference, WhereClause,
-    },
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::parse::{Error, Parse, ParseStream, Result};
+use syn::visit_mut::{self, VisitMut};
+use syn::{
+    parse_quote, parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, Attribute, Block,
+    FnArg, GenericArgument, GenericParam, ImplItem, ImplItemType, ItemImpl, Lifetime, Pat,
+    Receiver, Signature, Token, Type, TypeReference, WhereClause,
 };
 
 pub struct Item(ItemImpl);

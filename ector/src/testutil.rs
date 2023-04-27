@@ -1,14 +1,16 @@
-use {
-    crate::{Actor, ActorSpawner, Address, Inbox},
-    atomic_polyfill::{AtomicBool, Ordering},
-    core::{cell::RefCell, future::Future, pin::Pin},
-    embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner},
-    embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal},
-    embedded_hal::digital::v2::InputPin,
-    embedded_hal_async::digital::Wait,
-    static_cell::StaticCell,
-    std::{cell::UnsafeCell, marker::PhantomData, vec::Vec},
-};
+use crate::{Actor, ActorSpawner, Address, Inbox};
+use atomic_polyfill::{AtomicBool, Ordering};
+use core::cell::RefCell;
+use core::future::Future;
+use core::pin::Pin;
+use embassy_executor::{raw, raw::TaskStorage as Task, SpawnError, Spawner};
+use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
+use embedded_hal::digital::v2::InputPin;
+use embedded_hal_async::digital::Wait;
+use static_cell::StaticCell;
+use std::cell::UnsafeCell;
+use std::marker::PhantomData;
+use std::vec::Vec;
 
 type CS = CriticalSectionRawMutex;
 
@@ -176,29 +178,43 @@ impl embedded_hal_1::digital::ErrorType for TestPin {
 }
 
 impl Wait for TestPin {
-    async fn wait_for_high(&mut self) -> Result<(), Infallible> {
-        self.inner.signal.wait().await;
-        Ok(())
+    type WaitForHighFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_high(&mut self) -> Self::WaitForHighFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 
-    async fn wait_for_low(&mut self) -> Result<(), Infallible> {
-        self.inner.signal.wait().await;
-        Ok(())
+    type WaitForLowFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_low(&mut self) -> Self::WaitForLowFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 
-    async fn wait_for_rising_edge(&mut self) -> Result<(), Infallible> {
-        self.inner.signal.wait().await;
-        Ok(())
+    type WaitForRisingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_rising_edge(&mut self) -> Self::WaitForRisingEdgeFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
+    }
+    type WaitForFallingEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_falling_edge(&mut self) -> Self::WaitForFallingEdgeFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 
-    async fn wait_for_falling_edge(&mut self) -> Result<(), Infallible> {
-        self.inner.signal.wait().await;
-        Ok(())
-    }
-
-    async fn wait_for_any_edge(&mut self) -> Result<(), Infallible> {
-        self.inner.signal.wait().await;
-        Ok(())
+    type WaitForAnyEdgeFuture<'m> = impl Future<Output = Result<(), Infallible>> + 'm where Self: 'm;
+    fn wait_for_any_edge(&mut self) -> Self::WaitForAnyEdgeFuture<'_> {
+        async move {
+            self.inner.signal.wait().await;
+            Ok(())
+        }
     }
 }
 
