@@ -1,14 +1,12 @@
-use crate::{Actor, Address, Inbox};
-use atomic_polyfill::{AtomicBool, Ordering};
-use core::cell::RefCell;
-use core::future::Future;
-use core::pin::Pin;
-use embassy_executor::{raw, Spawner};
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
-use static_cell::StaticCell;
-use std::cell::UnsafeCell;
-use std::marker::PhantomData;
-use std::vec::Vec;
+use {
+    crate::{Actor, Address, Inbox},
+    atomic_polyfill::{AtomicBool, Ordering},
+    core::{cell::RefCell, future::Future, pin::Pin},
+    embassy_executor::{raw, Spawner},
+    embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal},
+    static_cell::StaticCell,
+    std::{cell::UnsafeCell, marker::PhantomData, vec::Vec},
+};
 
 type CS = CriticalSectionRawMutex;
 

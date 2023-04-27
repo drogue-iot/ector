@@ -3,8 +3,10 @@
 #![feature(async_fn_in_trait)]
 #![allow(incomplete_features)]
 
-use ector::{mutex::CriticalSectionRawMutex, *};
-use embassy_time::{Duration, Timer};
+use {
+    ector::{mutex::CriticalSectionRawMutex, *},
+    embassy_time::{Duration, Timer},
+};
 
 #[embassy_executor::main]
 async fn main(s: embassy_executor::Spawner) {

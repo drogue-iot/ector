@@ -3,9 +3,11 @@
 #![feature(async_fn_in_trait)]
 #![allow(incomplete_features)]
 
-use ector::*;
-use embassy_time::{Duration, Timer};
-use futures::future::join;
+use {
+    ector::*,
+    embassy_time::{Duration, Timer},
+    futures::future::join,
+};
 
 async fn test(addr: Address<Request<&'static str, &'static str>>) {
     let r = addr.request("Hello").await;

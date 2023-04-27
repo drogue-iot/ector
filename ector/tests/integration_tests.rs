@@ -5,10 +5,18 @@
 
 #[cfg(feature = "std")]
 mod tests {
-    use ector::*;
-    use embassy_executor::Spawner;
-    use std::sync::atomic::{AtomicU32, Ordering};
-    use std::{sync::mpsc, thread, time::Duration};
+    use {
+        ector::*,
+        embassy_executor::Spawner,
+        std::{
+            sync::{
+                atomic::{AtomicU32, Ordering},
+                mpsc,
+            },
+            thread,
+            time::Duration,
+        },
+    };
 
     static INITIALIZED: AtomicU32 = AtomicU32::new(0);
 

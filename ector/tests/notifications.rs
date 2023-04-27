@@ -4,9 +4,10 @@
 #![feature(type_alias_impl_trait)]
 #![feature(async_fn_in_trait)]
 
-use ector::testutils::DummyActor;
-use ector::testutils::*;
-use ector::*;
+use ector::{
+    testutils::{DummyActor, *},
+    *,
+};
 
 #[test]
 fn test_sync_notifications() {
