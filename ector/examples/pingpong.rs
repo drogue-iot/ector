@@ -8,7 +8,7 @@ use {
     embassy_time::{Duration, Ticker},
     futures::{
         future::{join, select, Either},
-        pin_mut, StreamExt,
+        pin_mut,
     },
 };
 

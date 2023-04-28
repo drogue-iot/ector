@@ -173,7 +173,7 @@ impl TestSignal {
 
 /// A test context that can execute test for a given device
 pub struct TestRunner {
-    inner: UnsafeCell<raw::Executor>,
+    inner: raw::Executor,
     not_send: PhantomData<*mut ()>,
     signaler: &'static Signaler,
     pins: UnsafeCell<Vec<InnerPin>>,
@@ -185,7 +185,7 @@ impl Default for TestRunner {
     fn default() -> Self {
         let signaler = &*Box::leak(Box::new(Signaler::new()));
         Self {
-            inner: UnsafeCell::new(raw::Executor::new(
+            inner: raw::Executor::new(raw::Pender::new_from_callback(
                 |p| unsafe {
                     let s = &*(p as *const () as *const Signaler);
                     s.signal()
@@ -203,13 +203,13 @@ impl Default for TestRunner {
 
 impl TestRunner {
     pub fn initialize(&'static self, init: impl FnOnce(Spawner)) {
-        init(unsafe { (*self.inner.get()).spawner() });
+        init(self.inner.spawner());
     }
 
     pub fn run_until_idle(&'static self) {
         self.signaler.prepare();
         while self.signaler.should_run() {
-            unsafe { (*self.inner.get()).poll() };
+            unsafe { self.inner.poll() };
         }
     }
 
