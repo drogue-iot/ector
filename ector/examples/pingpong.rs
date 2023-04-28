@@ -8,7 +8,7 @@ use {
     embassy_time::{Duration, Ticker},
     futures::{
         future::{join, select, Either},
-        pin_mut,
+        pin_mut, StreamExt,
     },
 };
 
@@ -18,8 +18,8 @@ async fn main(_s: embassy_executor::Spawner) {
     static PINGER: ActorContext<Pinger> = ActorContext::new();
     static PONGER: ActorContext<Ponger> = ActorContext::new();
 
-    let pinger_addr = PINGER.address();
-    let ponger_addr = PONGER.address();
+    let pinger_addr = PINGER.dyn_address();
+    let ponger_addr = PONGER.dyn_address();
 
     let pinger = PINGER.mount(Pinger(ponger_addr));
     let ponger = PONGER.mount(Ponger(pinger_addr));
@@ -32,13 +32,13 @@ pub struct Ping;
 #[derive(Debug)]
 pub struct Pong;
 
-pub struct Pinger(Address<Ping>);
-pub struct Ponger(Address<Pong>);
+pub struct Pinger(DynamicAddress<Ping>);
+pub struct Ponger(DynamicAddress<Pong>);
 
 impl Actor for Pinger {
     type Message = Pong;
 
-    async fn on_mount<M>(&mut self, _: Address<Pong>, mut inbox: M) -> !
+    async fn on_mount<M>(&mut self, _: DynamicAddress<Pong>, mut inbox: M) -> !
     where
         M: Inbox<Self::Message>,
     {
@@ -68,7 +68,7 @@ impl Actor for Pinger {
 
 impl Actor for Ponger {
     type Message = Ping;
-    async fn on_mount<M>(&mut self, _: Address<Ping>, mut inbox: M) -> !
+    async fn on_mount<M>(&mut self, _: DynamicAddress<Ping>, mut inbox: M) -> !
     where
         M: Inbox<Self::Message>,
     {

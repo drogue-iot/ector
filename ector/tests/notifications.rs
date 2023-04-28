@@ -12,7 +12,7 @@ use ector::{
 #[test]
 fn test_sync_notifications() {
     static ACTOR: ActorContext<DummyActor, mutex::NoopRawMutex, 1> = ActorContext::new();
-    let address = ACTOR.address();
+    let address = ACTOR.dyn_address();
     let mut actor_fut = ACTOR.mount(DummyActor::new());
 
     let result_1 = address.try_notify(TestMessage(0));

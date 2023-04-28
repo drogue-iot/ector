@@ -4,30 +4,25 @@
 #![allow(incomplete_features)]
 
 use {
-    ector::{mutex::CriticalSectionRawMutex, *},
+    ector::{mutex::NoopRawMutex, *},
     embassy_time::{Duration, Timer},
 };
 
 #[embassy_executor::main]
 async fn main(s: embassy_executor::Spawner) {
-    let server_0_addr = actor!(s, server_0, Server, Server);
-    let server_1_addr = actor!(s, server_1, Server, Server, CriticalSectionRawMutex);
-    let server_2_addr = actor!(s, server_2, Server, Server, 2);
-    let server_3_addr = actor!(s, server_3, Server, Server, CriticalSectionRawMutex, 2);
+    let server_0_addr: DynamicAddress<Request<String, String>> =
+        actor!(s, server_0, Server, Server).into();
+    let server_1_addr = actor!(s, server_1, Server, Server, NoopRawMutex).into();
+    let server_2_addr = actor!(s, server_2, Server, Server, 2).into();
+    let server_3_addr = actor!(s, server_3, Server, Server, NoopRawMutex, 2).into();
 
     static SERVER_4: ActorContext<Server> = ActorContext::new();
-    static SERVER_5: ActorContext<Server, CriticalSectionRawMutex, 2> = ActorContext::new();
-    let server_4_addr = spawn_context!(SERVER_4, s, server_4, Server, Server);
-    let server_5_addr = spawn_context!(
-        SERVER_5,
-        s,
-        server_5,
-        Server,
-        Server,
-        CriticalSectionRawMutex,
-        2
-    );
+    static SERVER_5: ActorContext<Server, NoopRawMutex, 2> = ActorContext::new();
+    let server_4_addr = spawn_context!(SERVER_4, s, server_4, Server, Server).into();
+    let server_5_addr =
+        spawn_context!(SERVER_5, s, server_5, Server, Server, NoopRawMutex, 2).into();
 
+    // Array of DynamicAddress
     let servers = [
         server_0_addr,
         server_1_addr,
@@ -48,12 +43,8 @@ async fn main(s: embassy_executor::Spawner) {
 pub struct Server;
 
 impl Actor for Server {
-    type Message = Request<String, String, CriticalSectionRawMutex>;
-    async fn on_mount<M>(
-        &mut self,
-        _: Address<Request<String, String, CriticalSectionRawMutex>>,
-        mut inbox: M,
-    ) -> !
+    type Message = Request<String, String>;
+    async fn on_mount<M>(&mut self, _: DynamicAddress<Request<String, String>>, mut inbox: M) -> !
     where
         M: Inbox<Self::Message>,
     {

@@ -1,4 +1,4 @@
-use embassy_sync::blocking_mutex::raw::RawMutex;
+use embassy_sync::{blocking_mutex::raw::RawMutex, channel::Sender};
 
 use static_cell::StaticCell;
 
@@ -20,7 +20,7 @@ pub trait Actor: Sized {
 
     /// Called when an actor is mounted (activated). The actor will be provided with the
     /// address to itself, and an inbox used to receive incoming messages.
-    async fn on_mount<M>(&mut self, _: Address<Self::Message>, _: M) -> !
+    async fn on_mount<M>(&mut self, _: DynamicAddress<Self::Message>, _: M) -> !
     where
         M: Inbox<Self::Message>;
 }
@@ -44,76 +44,117 @@ where
     }
 }
 
-/// A handle to another actor for dispatching messages.
+/// A trait send message to another actor.
 ///
-/// Individual actor implementations may augment the `Address` object
+/// Individual actor implementations may augment the `ActorAddress` object
 /// when appropriate bounds are met to provide method-like invocations.
-pub struct Address<M>
-where
-    M: 'static,
-{
-    state: DynamicSender<'static, M>,
-}
-
-impl<M> Address<M> {
-    fn new(state: DynamicSender<'static, M>) -> Self {
-        Self { state }
-    }
-}
-
-impl<M> Address<M> {
+pub trait ActorAddress<M> {
     /// Attempt to send a message to the actor behind this address. If an error
     /// occurs when enqueueing the message on the destination actor, the message is returned.
-    pub fn try_notify(&self, message: M) -> Result<(), M> {
-        self.state.try_send(message).map_err(|e| match e {
+    fn try_notify(&self, message: M) -> Result<(), M>;
+
+    /// Attempt to deliver a message until successful.
+    async fn notify(&self, message: M);
+}
+
+pub trait ActorRequest<M, R> {
+    /// Attempts to send a message and wait for the response
+    async fn request(&self, message: M) -> R;
+}
+
+impl<'a, M> ActorAddress<M> for DynamicSender<'a, M> {
+    fn try_notify(&self, message: M) -> Result<(), M> {
+        self.try_send(message).map_err(|e| match e {
             TrySendError::Full(m) => m,
         })
     }
 
-    // Attempt to deliver a message until successful.
-    pub async fn notify(&self, message: M) {
-        self.state.send(message).await
+    async fn notify(&self, message: M) {
+        self.send(message).await
     }
 }
 
-impl<M, R, MUT> Address<Request<M, R, MUT>>
-where
-    MUT: RawMutex,
-{
-    pub async fn request(&self, message: M) -> R {
-        let reply_to: Channel<MUT, R, 1> = Channel::new();
+impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
+    async fn request(&self, message: M) -> R {
+        let channel: Channel<NoopRawMutex, R, 1> = Channel::new();
+        let sender: DynamicSender<'_, R> = channel.sender().into();
+
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
-        let message = Request::new(message, unsafe { core::mem::transmute(&reply_to) });
+        let reply_to = unsafe { core::mem::transmute(&sender) };
+        let message = Request::new(message, reply_to);
         self.notify(message).await;
-        reply_to.recv().await
+        channel.recv().await
     }
 }
 
-impl<M> Clone for Address<M> {
-    fn clone(&self) -> Self {
-        Self {
-            state: self.state.clone(),
-        }
-    }
-}
-
-type ReplyTo<T, MUT> = Channel<MUT, T, 1>;
-
-pub struct Request<M, R, MUT = NoopRawMutex>
-where
-    R: 'static,
-    MUT: RawMutex + 'static,
-{
-    message: Option<M>,
-    reply_to: &'static ReplyTo<R, MUT>,
-}
-
-impl<M, R, MUT> Request<M, R, MUT>
+impl<'a, M, MUT, const N: usize> ActorAddress<M> for Sender<'a, MUT, M, N>
 where
     MUT: RawMutex,
 {
-    fn new(message: M, reply_to: &'static ReplyTo<R, MUT>) -> Self {
+    fn try_notify(&self, message: M) -> Result<(), M> {
+        self.try_send(message).map_err(|e| match e {
+            TrySendError::Full(m) => m,
+        })
+    }
+
+    async fn notify(&self, message: M) {
+        self.send(message).await
+    }
+}
+
+impl<'a, M, R, MUT, const N: usize> ActorRequest<M, R> for Sender<'a, MUT, Request<M, R>, N>
+where
+    M: 'static,
+    MUT: RawMutex + 'static,
+{
+    async fn request(&self, message: M) -> R {
+        let channel: Channel<MUT, R, 1> = Channel::new();
+        let sender: DynamicSender<'_, R> = channel.sender().into();
+
+        // We guarantee that channel lives until we've been notified on it, at which
+        // point its out of reach for the replier.
+        let reply_to = unsafe { core::mem::transmute(&sender) };
+        let message = Request::new(message, reply_to);
+        self.notify(message).await;
+        channel.recv().await
+    }
+}
+
+/// A handle to another actor for dispatching messages.
+///
+/// Individual actor implementations may augment the `Address` object
+/// when appropriate bounds are met to provide method-like invocations.
+pub type DynamicAddress<M> = DynamicSender<'static, M>;
+
+/// Type alias over a [DynamicAddress] using a [Request] as message
+pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
+
+/// A handle to another actor for dispatching messages.
+///
+/// Individual actor implementations may augment the `Address` object
+/// when appropriate bounds are met to provide method-like invocations.
+pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
+
+/// Type alias over a [Address] using a [Request] as message
+pub type RequestAddress<M, R, MUT, const N: usize = 1> = Sender<'static, MUT, Request<M, R>, N>;
+
+pub struct Request<M, R>
+where
+    R: 'static,
+{
+    message: Option<M>,
+    reply_to: &'static DynamicSender<'static, R>,
+}
+
+/// Safety: Only the [Address] or [DynamicAddress] build requests, meaning that they will use the approriate mutex
+/// even if it uses [DynamicSender] internally
+/// For [DynamicAddress] a [NoopRawMutex] since it's already not send
+/// For [Address], the matching mutex is used
+unsafe impl<M, R> Send for Request<M, R> {}
+
+impl<M, R> Request<M, R> {
+    fn new(message: M, reply_to: &'static DynamicSender<'static, R>) -> Self {
         Self {
             message: Some(message),
             reply_to,
@@ -130,19 +171,13 @@ where
     }
 }
 
-impl<M, R, MUT> AsRef<M> for Request<M, R, MUT>
-where
-    MUT: RawMutex,
-{
+impl<M, R> AsRef<M> for Request<M, R> {
     fn as_ref(&self) -> &M {
         self.message.as_ref().unwrap()
     }
 }
 
-impl<M, R, MUT> AsMut<M> for Request<M, R, MUT>
-where
-    MUT: RawMutex,
-{
+impl<M, R> AsMut<M> for Request<M, R> {
     fn as_mut(&mut self) -> &mut M {
         self.message.as_mut().unwrap()
     }
@@ -191,12 +226,16 @@ where
     /// Mount the underlying actor and initialize the channel.
     pub async fn mount(&'static self, actor: A) -> ! {
         let actor = self.actor.init(actor);
-        let address = Address::new(self.channel.sender().into());
+        let address = self.channel.sender().into();
         let receiver = self.channel.receiver();
         actor.on_mount(address, receiver).await
     }
 
-    pub fn address(&'static self) -> Address<A::Message> {
-        Address::new(self.channel.sender().into())
+    pub fn dyn_address(&'static self) -> DynamicAddress<A::Message> {
+        self.channel.sender().into()
+    }
+
+    pub fn address(&'static self) -> Address<A::Message, MUT, QUEUE_SIZE> {
+        self.channel.sender()
     }
 }
