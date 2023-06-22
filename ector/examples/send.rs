@@ -9,9 +9,16 @@ use {
     ector::*,
     embassy_time::{Duration, Timer},
 };
-
+// Address<Request<String, String>, CriticalSectionRawMutex, 1>
 #[embassy_executor::task]
-async fn send_task(address: Address<Request<String, String>, CriticalSectionRawMutex, 1>) {
+async fn send_task(
+    mut address: RequestManager<
+        Address<Request<String, String>, CriticalSectionRawMutex, 1>,
+        String,
+        String,
+        CriticalSectionRawMutex,
+    >,
+) {
     loop {
         let r = address.request("Hello".to_string()).await;
         println!("Server returned {}", r);
@@ -24,7 +31,8 @@ async fn main(s: embassy_executor::Spawner) {
     let send_spawner = s.make_send();
     //  CriticalSectionRawMutex makes the address `Send`
     let server_addr = actor!(s, server_0, Server, Server, CriticalSectionRawMutex);
-    send_spawner.spawn(send_task(server_addr)).unwrap();
+    let request_manager = req!(server_addr, String, CriticalSectionRawMutex);
+    send_spawner.spawn(send_task(request_manager)).unwrap();
 }
 
 pub struct Server;

@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use embassy_sync::{blocking_mutex::raw::RawMutex, channel::Sender};
 
 use static_cell::StaticCell;
@@ -56,12 +58,6 @@ pub trait ActorAddress<M> {
     /// Attempt to deliver a message until successful.
     async fn notify(&self, message: M);
 }
-
-pub trait ActorRequest<M, R> {
-    /// Attempts to send a message and wait for the response
-    async fn request(&self, message: M) -> R;
-}
-
 impl<'a, M> ActorAddress<M> for DynamicSender<'a, M> {
     fn try_notify(&self, message: M) -> Result<(), M> {
         self.try_send(message).map_err(|e| match e {
@@ -71,20 +67,6 @@ impl<'a, M> ActorAddress<M> for DynamicSender<'a, M> {
 
     async fn notify(&self, message: M) {
         self.send(message).await
-    }
-}
-
-impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
-    async fn request(&self, message: M) -> R {
-        let channel: Channel<NoopRawMutex, R, 1> = Channel::new();
-        let sender: DynamicSender<'_, R> = channel.sender().into();
-
-        // We guarantee that channel lives until we've been notified on it, at which
-        // point its out of reach for the replier.
-        let reply_to = unsafe { core::mem::transmute(&sender) };
-        let message = Request::new(message, reply_to);
-        self.notify(message).await;
-        channel.receive().await
     }
 }
 
@@ -103,21 +85,73 @@ where
     }
 }
 
-impl<'a, M, R, MUT, const N: usize> ActorRequest<M, R> for Sender<'a, MUT, Request<M, R>, N>
-where
-    M: 'static,
-    MUT: RawMutex + 'static,
-{
-    async fn request(&self, message: M) -> R {
-        let channel: Channel<MUT, R, 1> = Channel::new();
-        let sender: DynamicSender<'_, R> = channel.sender().into();
+/// A trait send message to another actor and receives a reply.
+///
+/// Use [RequestManager] for typical usage.
+/// Note that the actor fufilling this request should always reply.
+/// The request can be cancelled and the uncompleted request should be cancelled internally
+pub trait ActorRequest<M, R> {
+    /// Attempts to send a message and wait for the response
+    /// Takes a mutable reference to avoid making multiple request from the same instnace
+    async fn request(&mut self, message: M) -> R;
+}
 
-        // We guarantee that channel lives until we've been notified on it, at which
-        // point its out of reach for the replier.
-        let reply_to = unsafe { core::mem::transmute(&sender) };
-        let message = Request::new(message, reply_to);
-        self.notify(message).await;
-        channel.receive().await
+pub struct RequestManager<A, M, R, MUT = NoopRawMutex>
+where
+    A: ActorAddress<Request<M, R>>,
+    MUT: RawMutex + 'static,
+    M: 'static,
+    R: 'static,
+{
+    addr: A,
+    reply_from: Sender<'static, MUT, R, 1>,
+    reply_to: Receiver<'static, MUT, R, 1>,
+    cancelled: usize,
+    _phatom: PhantomData<M>,
+}
+
+impl<A, M, R, MUT> RequestManager<A, M, R, MUT>
+where
+    A: ActorAddress<Request<M, R>>,
+    MUT: RawMutex,
+{
+    /// Creates a new instance of the request manager.
+    /// The channel must be provided by the user and only used by this manager
+    pub fn new(addr: A, channel: &'static mut Channel<MUT, R, 1>) -> Self
+    where
+        MUT: RawMutex,
+    {
+        Self {
+            addr,
+            reply_from: channel.sender(),
+            reply_to: channel.receiver(),
+            cancelled: 0,
+            _phatom: PhantomData,
+        }
+    }
+
+    async fn handle_missed(&mut self) {
+        while self.cancelled > 0 {
+            self.reply_to.receive().await;
+            self.cancelled -= 1;
+        }
+    }
+}
+
+impl<A, M, R, MUT> ActorRequest<M, R> for RequestManager<A, M, R, MUT>
+where
+    A: ActorAddress<Request<M, R>>,
+    MUT: RawMutex,
+{
+    async fn request(&mut self, message: M) -> R {
+        let message = Request::new(message, self.reply_from.clone().into());
+
+        self.cancelled += 1;
+        self.addr.notify(message).await;
+        let reply = self.reply_to.recv().await;
+        self.cancelled -= 1;
+
+        reply
     }
 }
 
@@ -144,7 +178,7 @@ where
     R: 'static,
 {
     message: Option<M>,
-    reply_to: &'static DynamicSender<'static, R>,
+    reply_to: DynamicSender<'static, R>,
 }
 
 /// Safety: Only the [Address] or [DynamicAddress] build requests, meaning that they will use the approriate mutex
@@ -154,7 +188,7 @@ where
 unsafe impl<M, R> Send for Request<M, R> {}
 
 impl<M, R> Request<M, R> {
-    fn new(message: M, reply_to: &'static DynamicSender<'static, R>) -> Self {
+    fn new(message: M, reply_to: DynamicSender<'static, R>) -> Self {
         Self {
             message: Some(message),
             reply_to,

@@ -14,6 +14,12 @@ pub use {actor::*, ector_macros::*};
 pub mod mutex {
     pub use embassy_sync::blocking_mutex::raw::*;
 }
+pub mod sync {
+    pub use embassy_sync::channel::Channel;
+}
+pub mod stat {
+    pub use static_cell::StaticCell;
+}
 
 #[cfg(feature = "test-utils")]
 pub mod testutils;
@@ -102,5 +108,25 @@ macro_rules! spawn_context {
         let address = $context.address();
         $spawner.spawn($name(&$context, $instance)).unwrap();
         address
+    }};
+}
+
+/// Makes an address support a request
+#[macro_export]
+macro_rules! req {
+    ($address:ident, $response:ty) => {{
+        static REQUEST_CHANNEL: ::ector::stat::StaticCell<
+            ::ector::sync::Channel<::ector::mutex::NoopRawMutex, $response, 1>,
+        > = ::ector::stat::StaticCell::new();
+        let channel = REQUEST_CHANNEL.init(::ector::sync::Channel::new());
+        ::ector::RequestManager::new($address, channel)
+    }};
+
+    ($address:ident, $response:ty, $mutex:ty) => {{
+        static REQUEST_CHANNEL: ::ector::stat::StaticCell<
+            ::ector::sync::Channel<$mutex, $response, 1>,
+        > = ::ector::stat::StaticCell::new();
+        let channel = REQUEST_CHANNEL.init(::ector::sync::Channel::new());
+        ::ector::RequestManager::new($address, channel)
     }};
 }
