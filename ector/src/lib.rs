@@ -114,7 +114,7 @@ macro_rules! spawn_context {
 /// Makes an address support a request
 #[macro_export]
 macro_rules! req {
-    ($address:ident, $response:ty) => {{
+    ($address:expr, $response:ty) => {{
         static REQUEST_CHANNEL: ::ector::stat::StaticCell<
             ::ector::sync::Channel<::ector::mutex::NoopRawMutex, $response, 1>,
         > = ::ector::stat::StaticCell::new();
@@ -122,7 +122,7 @@ macro_rules! req {
         ::ector::RequestManager::new($address, channel)
     }};
 
-    ($address:ident, $response:ty, $mutex:ty) => {{
+    ($address:expr, $response:ty, $mutex:ty) => {{
         static REQUEST_CHANNEL: ::ector::stat::StaticCell<
             ::ector::sync::Channel<$mutex, $response, 1>,
         > = ::ector::stat::StaticCell::new();

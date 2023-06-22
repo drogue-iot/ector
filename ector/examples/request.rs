@@ -9,7 +9,13 @@ use {
     futures::future::join,
 };
 
-async fn test(addr: DynamicAddress<Request<&'static str, &'static str>>) {
+async fn test(
+    mut addr: RequestManager<
+        DynamicAddress<Request<&'static str, &'static str>>,
+        &'static str,
+        &'static str,
+    >,
+) {
     let r = addr.request("Hello").await;
     println!("Server returned {}", r);
     Timer::after(Duration::from_secs(1)).await;
@@ -20,7 +26,7 @@ async fn main(_s: embassy_executor::Spawner) {
     // Example of request response
     static SERVER: ActorContext<Server> = ActorContext::new();
 
-    let address = SERVER.dyn_address();
+    let address = req!(SERVER.dyn_address(), &'static str);
     let server = SERVER.mount(Server);
     let test = test(address);
     join(server, test).await;

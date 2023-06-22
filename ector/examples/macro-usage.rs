@@ -12,6 +12,7 @@ use {
 async fn main(s: embassy_executor::Spawner) {
     let server_0_addr: DynamicAddress<Request<String, String>> =
         actor!(s, server_0, Server, Server).into();
+
     let server_1_addr = actor!(s, server_1, Server, Server, NoopRawMutex).into();
     let server_2_addr = actor!(s, server_2, Server, Server, 2).into();
     let server_3_addr = actor!(s, server_3, Server, Server, NoopRawMutex, 2).into();
@@ -22,8 +23,16 @@ async fn main(s: embassy_executor::Spawner) {
     let server_5_addr =
         spawn_context!(SERVER_5, s, server_5, Server, Server, NoopRawMutex, 2).into();
 
+    // Adding support for request
+    let server_0_addr = req!(server_0_addr, String);
+    let server_1_addr = req!(server_1_addr, String);
+    let server_2_addr = req!(server_2_addr, String);
+    let server_3_addr = req!(server_3_addr, String);
+    let server_4_addr = req!(server_4_addr, String);
+    let server_5_addr = req!(server_5_addr, String);
+
     // Array of DynamicAddress
-    let servers = [
+    let mut servers = [
         server_0_addr,
         server_1_addr,
         server_2_addr,
@@ -32,7 +41,7 @@ async fn main(s: embassy_executor::Spawner) {
         server_5_addr,
     ];
     loop {
-        for (i, server) in servers.iter().enumerate() {
+        for (i, server) in servers.iter_mut().enumerate() {
             let r = server.request("Hello".to_string()).await;
             println!("Server {} returned {}", i, r);
             Timer::after(Duration::from_secs(1)).await;
