@@ -144,8 +144,9 @@ where
     MUT: RawMutex,
 {
     async fn request(&mut self, message: M) -> R {
-        let message = Request::new(message, self.reply_from.clone().into());
+        self.handle_missed().await;
 
+        let message = Request::new(message, self.reply_from.clone().into());
         self.cancelled += 1;
         self.addr.notify(message).await;
         let reply = self.reply_to.recv().await;
