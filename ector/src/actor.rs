@@ -147,8 +147,8 @@ where
         self.handle_missed().await;
 
         let message = Request::new(message, self.reply_from.clone().into());
-        self.cancelled += 1;
         self.addr.notify(message).await;
+        self.cancelled += 1;
         let reply = self.reply_to.recv().await;
         self.cancelled -= 1;
 

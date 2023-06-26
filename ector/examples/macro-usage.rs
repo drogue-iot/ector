@@ -24,12 +24,12 @@ async fn main(s: embassy_executor::Spawner) {
         spawn_context!(SERVER_5, s, server_5, Server, Server, NoopRawMutex, 2).into();
 
     // Adding support for request
-    let server_0_addr = req!(server_0_addr, String);
-    let server_1_addr = req!(server_1_addr, String);
-    let server_2_addr = req!(server_2_addr, String);
-    let server_3_addr = req!(server_3_addr, String);
-    let server_4_addr = req!(server_4_addr, String);
-    let server_5_addr = req!(server_5_addr, String);
+    let server_0_addr = request!(server_0_addr, String);
+    let server_1_addr = request!(server_1_addr, String);
+    let server_2_addr = request!(server_2_addr, String);
+    let server_3_addr = request!(server_3_addr, String);
+    let server_4_addr = request!(server_4_addr, String);
+    let server_5_addr = request!(server_5_addr, String);
 
     // Array of DynamicAddress
     let mut servers = [

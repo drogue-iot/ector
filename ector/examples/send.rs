@@ -31,7 +31,7 @@ async fn main(s: embassy_executor::Spawner) {
     let send_spawner = s.make_send();
     //  CriticalSectionRawMutex makes the address `Send`
     let server_addr = actor!(s, server_0, Server, Server, CriticalSectionRawMutex);
-    let request_manager = req!(server_addr, String, CriticalSectionRawMutex);
+    let request_manager = request!(server_addr, String, CriticalSectionRawMutex);
     send_spawner.spawn(send_task(request_manager)).unwrap();
 }
 

@@ -111,9 +111,9 @@ macro_rules! spawn_context {
     }};
 }
 
-/// Makes an address support a request
+/// Makes an address support the [Request] trait
 #[macro_export]
-macro_rules! req {
+macro_rules! request {
     ($address:expr, $response:ty) => {{
         static REQUEST_CHANNEL: ::ector::stat::StaticCell<
             ::ector::sync::Channel<::ector::mutex::NoopRawMutex, $response, 1>,

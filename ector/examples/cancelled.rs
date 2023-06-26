@@ -34,7 +34,7 @@ async fn main(_s: embassy_executor::Spawner) {
     // Example of request response
     static SERVER: ActorContext<Server> = ActorContext::new();
 
-    let address = req!(SERVER.dyn_address(), u32);
+    let address = request!(SERVER.dyn_address(), u32);
     let server = SERVER.mount(Server);
     let test = test(address);
     join(server, test).await;
