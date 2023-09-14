@@ -116,7 +116,7 @@ where
 {
     /// Creates a new instance of the request manager.
     /// The channel must be provided by the user and only used by this manager
-    pub fn new(addr: A, channel: &'static mut Channel<MUT, R, 1>) -> Self
+    pub fn new(addr: A, channel: &'static Channel<MUT, R, 1>) -> Self
     where
         MUT: RawMutex,
     {
@@ -145,7 +145,7 @@ where
     async fn request(&mut self, message: M) -> R {
         self.handle_missed().await;
 
-        let message = Request::new(message, self.reply_from.clone().into());
+        let message = Request::new(message, self.reply_from.into());
         self.addr.notify(message).await;
         self.cancelled += 1;
         let reply = self.reply_to.receive().await;
