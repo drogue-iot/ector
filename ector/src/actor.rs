@@ -161,7 +161,7 @@ where
 /// when appropriate bounds are met to provide method-like invocations.
 pub type DynamicAddress<M> = DynamicSender<'static, M>;
 
-/// Type alias over a [DynamicAddress] using a [Request] as message
+/// Type alias over a [RequestManager] using a [DynamicAddress] using a [Request] as message
 pub type DynamicRequestAddress<M, R> = RequestManager<DynamicSender<'static, Request<M, R>>, M, R>;
 
 /// A handle to another actor for dispatching messages.
@@ -170,7 +170,7 @@ pub type DynamicRequestAddress<M, R> = RequestManager<DynamicSender<'static, Req
 /// when appropriate bounds are met to provide method-like invocations.
 pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
 
-/// Type alias over a [Address] using a [Request] as message
+/// Type alias over a [RequestManager] using an [Address] using a [Request] as message
 pub type RequestAddress<M, R, MUT, const N: usize = 1> =
     RequestManager<Sender<'static, Request<M, R>, MUT, N>, M, R, MUT>;
 
