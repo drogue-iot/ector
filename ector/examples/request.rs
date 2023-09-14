@@ -43,7 +43,7 @@ impl Actor for Server {
 
         loop {
             let motd = inbox.next().await;
-            let m = motd.as_ref().clone();
+            let m: &'static str = motd.as_ref();
             motd.reply(m).await;
         }
     }
