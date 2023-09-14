@@ -98,7 +98,6 @@ pub trait ActorRequest<M, R> {
 
 pub struct RequestManager<A, M, R, MUT = NoopRawMutex>
 where
-    A: ActorAddress<Request<M, R>>,
     MUT: RawMutex + 'static,
     M: 'static,
     R: 'static,
@@ -149,7 +148,7 @@ where
         let message = Request::new(message, self.reply_from.clone().into());
         self.addr.notify(message).await;
         self.cancelled += 1;
-        let reply = self.reply_to.recv().await;
+        let reply = self.reply_to.receive().await;
         self.cancelled -= 1;
 
         reply
