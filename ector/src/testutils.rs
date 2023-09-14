@@ -181,17 +181,13 @@ pub struct TestRunner {
     done: AtomicBool,
 }
 
+// NOTE: Here, we can't define the __pender since it's already implemented [here](https://github.com/embassy-rs/embassy/blob/f1f4943ca51e8827146daca950fdf88d5b1e046b/embassy-executor/src/arch/std.rs#L17)
+// The [TestRunner] WILL break and cause UB if the __pender implementation changes.
 impl Default for TestRunner {
     fn default() -> Self {
-        let signaler = &*Box::leak(Box::new(Signaler::new()));
+        let signaler = Box::leak(Box::new(Signaler::new()));
         Self {
-            inner: raw::Executor::new(raw::Pender::new_from_callback(
-                |p| unsafe {
-                    let s = &*(p as *const () as *const Signaler);
-                    s.signal()
-                },
-                signaler as *const _ as _,
-            )),
+            inner: raw::Executor::new(signaler as *mut Signaler as *mut ()),
             not_send: PhantomData,
             signaler,
             pins: UnsafeCell::new(Vec::new()),
