@@ -28,7 +28,7 @@ static_cell = "1.0.0"
 
 
 [dev-dependencies]
-embassy-executor = { version = "0.2.0", default-features = false, features = ["integrated-timers", "nightly", "arch-std", "executor-thread"]}
+embassy-executor = { version = "0.3.0", default-features = false, features = ["integrated-timers", "nightly", "arch-std", "executor-thread"]}
 embassy-time = { version = "0.1.0", default-features = false, features = ["std", "nightly"] }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 critical-section = { version = "1.1", features = ["std"] }
