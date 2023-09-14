@@ -40,7 +40,7 @@ where
     MUT: RawMutex,
 {
     async fn next(&mut self) -> M {
-        self.recv().await
+        self.receive().await
     }
 }
 
@@ -84,7 +84,7 @@ impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
         let reply_to = unsafe { core::mem::transmute(&sender) };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
-        channel.recv().await
+        channel.receive().await
     }
 }
 
@@ -117,7 +117,7 @@ where
         let reply_to = unsafe { core::mem::transmute(&sender) };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
-        channel.recv().await
+        channel.receive().await
     }
 }
 
