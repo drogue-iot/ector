@@ -172,7 +172,7 @@ pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
 
 /// Type alias over a [RequestManager] using an [Address] using a [Request] as message
 pub type RequestAddress<M, R, MUT, const N: usize = 1> =
-    RequestManager<Sender<'static, Request<M, R>, MUT, N>, M, R, MUT>;
+    RequestManager<Sender<'static, MUT, Request<M, R>, N>, M, R, MUT>;
 
 pub struct Request<M, R>
 where
