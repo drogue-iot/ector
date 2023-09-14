@@ -11,7 +11,7 @@ use {
     futures::future::join,
 };
 
-async fn test(mut addr: RequestManager<DynamicAddress<Request<(), u32>>, (), u32>) {
+async fn test(mut addr: DynamicRequestAddress<(), u32>) {
     let r = addr.request(()).await;
     assert_eq!(r, 1);
     println!("Server returned {}", r);

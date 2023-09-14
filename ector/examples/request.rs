@@ -9,13 +9,7 @@ use {
     futures::future::join,
 };
 
-async fn test(
-    mut addr: RequestManager<
-        DynamicAddress<Request<&'static str, &'static str>>,
-        &'static str,
-        &'static str,
-    >,
-) {
+async fn test(mut addr: DynamicRequestAddress<&'static str, &'static str>) {
     let r = addr.request("Hello").await;
     println!("Server returned {}", r);
     Timer::after(Duration::from_secs(1)).await;
