@@ -138,6 +138,9 @@ where
 pub type DynamicAddress<M> = DynamicSender<'static, M>;
 
 /// Type alias over a [DynamicAddress] using a [Request] as message
+///
+/// Safety: You should not cancel a request, it will cause the requesting thread to panic,
+/// and cause UB if the Actor is still alive after the panic (i.e. in a different thread)
 pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
 
 /// A handle to another actor for dispatching messages.
@@ -147,6 +150,9 @@ pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
 pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
 
 /// Type alias over a [Address] using a [Request] as message
+///
+/// Safety: You should not cancel a request, it will cause the requesting thread to panic,
+/// and cause UB if the Actor is still alive after the panic (i.e. in a different thread)
 pub type RequestAddress<M, R, MUT, const N: usize = 1> = Sender<'static, MUT, Request<M, R>, N>;
 
 pub struct Request<M, R>
