@@ -7,6 +7,8 @@ use embassy_sync::{
     channel::{Channel, DynamicSender, Receiver, TrySendError},
 };
 
+use crate::drop::DropBomb;
+
 /// Trait that each actor must implement. An actor defines a message type
 /// that it acts on, and an implementation of `on_mount` which is invoked
 /// when the actor is started.
@@ -78,13 +80,17 @@ impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
     async fn request(&self, message: M) -> R {
         let channel: Channel<NoopRawMutex, R, 1> = Channel::new();
         let sender: DynamicSender<'_, R> = channel.sender().into();
+        let bomb = DropBomb::new();
 
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
         let reply_to = unsafe { core::mem::transmute(&sender) };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
-        channel.receive().await
+        let res = channel.receive().await;
+
+        bomb.defuse();
+        res
     }
 }
 
@@ -111,13 +117,17 @@ where
     async fn request(&self, message: M) -> R {
         let channel: Channel<MUT, R, 1> = Channel::new();
         let sender: DynamicSender<'_, R> = channel.sender().into();
+        let bomb = DropBomb::new();
 
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
         let reply_to = unsafe { core::mem::transmute(&sender) };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
-        channel.receive().await
+        let res = channel.receive().await;
+
+        bomb.defuse();
+        res
     }
 }
 
@@ -128,6 +138,9 @@ where
 pub type DynamicAddress<M> = DynamicSender<'static, M>;
 
 /// Type alias over a [DynamicAddress] using a [Request] as message
+///
+/// Safety: You should not cancel a request, it will cause the requesting thread to panic,
+/// and cause UB if the Actor is still alive after the panic (i.e. in a different thread)
 pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
 
 /// A handle to another actor for dispatching messages.
@@ -137,6 +150,9 @@ pub type DynamicRequestAddress<M, R> = DynamicSender<'static, Request<M, R>>;
 pub type Address<M, MUT, const N: usize = 1> = Sender<'static, MUT, M, N>;
 
 /// Type alias over a [Address] using a [Request] as message
+///
+/// Safety: You should not cancel a request, it will cause the requesting thread to panic,
+/// and cause UB if the Actor is still alive after the panic (i.e. in a different thread)
 pub type RequestAddress<M, R, MUT, const N: usize = 1> = Sender<'static, MUT, Request<M, R>, N>;
 
 pub struct Request<M, R>
