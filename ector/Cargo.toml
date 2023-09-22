@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "ector"
-version = "0.4.0"
+version = "0.5.0"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."
 documentation = "https://docs.rs/ector"
 readme = "../README.md"
@@ -22,7 +22,7 @@ atomic-polyfill = "1"
 log = { version = "0.4", optional = true }
 defmt = { version = "0.3", optional = true }
 
-ector-macros = { version = "0.4.0", path = "../macros" }
+ector-macros = { version = "0.5.0", path = "../macros" }
 futures = { version = "0.3", default-features = false }
 static_cell = "1.0.0"
 
