@@ -16,7 +16,7 @@ doctest = false
 
 [dependencies]
 embassy-executor = { version = "0.3", default-features = false, features = ["nightly"] }
-embassy-sync = { version = "0.3", default-features = false, features = ["nightly"] }
+embassy-sync = { version = "0.4", default-features = false, features = ["nightly"] }
 atomic-polyfill = "1"
 
 log = { version = "0.4", optional = true }
