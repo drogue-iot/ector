@@ -8,7 +8,7 @@ pub(crate) mod fmt;
 
 mod actor;
 mod drop;
-pub use actor::*;
+pub use {actor::*, ector_macros};
 
 // Reexport mutex types
 pub mod mutex {
