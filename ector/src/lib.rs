@@ -1,10 +1,9 @@
 #![macro_use]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
-#![feature(type_alias_impl_trait)]
 #![allow(async_fn_in_trait)]
-#![allow(incomplete_features)]
 #![doc = include_str!("../README.md")]
+
 pub(crate) mod fmt;
 
 mod actor;
