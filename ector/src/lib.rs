@@ -2,14 +2,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 #![feature(type_alias_impl_trait)]
-#![feature(async_fn_in_trait)]
+#![allow(async_fn_in_trait)]
 #![allow(incomplete_features)]
 #![doc = include_str!("../README.md")]
 pub(crate) mod fmt;
 
 mod actor;
 mod drop;
-pub use {actor::*, ector_macros::*};
+pub use actor::*;
 
 // Reexport mutex types
 pub mod mutex {
