@@ -15,7 +15,7 @@ exclude = [".github"]
 doctest = false
 
 [dependencies]
-embassy-executor = { version = "0.4", default-features = false }
+embassy-executor = { version = "0.5", default-features = false }
 embassy-sync = { version = "0.5", default-features = false }
 atomic-polyfill = "1"
 
@@ -28,8 +28,8 @@ static_cell = "1.0.0"
 
 
 [dev-dependencies]
-embassy-executor = { version = "0.4.0", default-features = false, features = ["integrated-timers", "arch-std", "executor-thread"]}
-embassy-time = { version = "0.2.0", default-features = false, features = ["std"] }
+embassy-executor = { version = "0.5.0", default-features = false, features = ["integrated-timers", "arch-std", "executor-thread"]}
+embassy-time = { version = "0.3.0", default-features = false, features = ["std"] }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 critical-section = { version = "1.1", features = ["std"] }
 ector = { path = ".", features = ["std", "log", "time", "test-utils"] }
