@@ -1,5 +1,4 @@
 #![allow(incomplete_features)]
-#![feature(proc_macro_diagnostic)]
 
 extern crate proc_macro;
 mod actor;
