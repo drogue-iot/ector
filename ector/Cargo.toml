@@ -15,8 +15,8 @@ exclude = [".github"]
 doctest = false
 
 [dependencies]
-embassy-executor = { version = "0.4", default-features = false }
-embassy-sync = { version = "0.5", default-features = false }
+embassy-executor = { version = "0.6", default-features = false }
+embassy-sync = { version = "0.6", default-features = false }
 atomic-polyfill = "1"
 
 log = { version = "0.4", optional = true }
@@ -24,18 +24,29 @@ defmt = { version = "0.3", optional = true }
 
 ector-macros = { version = "0.5.0", path = "../macros" }
 futures = { version = "0.3", default-features = false }
-static_cell = "1.0.0"
+static_cell = "2.1"
 
 
 [dev-dependencies]
-embassy-executor = { version = "0.4.0", default-features = false, features = ["integrated-timers", "arch-std", "executor-thread"]}
-embassy-time = { version = "0.2.0", default-features = false, features = ["std"] }
+embassy-executor = { version = "0.6.0", default-features = false, features = [
+  "integrated-timers",
+  "arch-std",
+  "executor-thread",
+] }
+embassy-time = { version = "0.3.2", default-features = false, features = [
+  "std",
+] }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 critical-section = { version = "1.1", features = ["std"] }
 ector = { path = ".", features = ["std", "log", "time", "test-utils"] }
 
 [features]
-default = [ "std", "log", "time" ]
-std = ["embassy-executor/integrated-timers", "embassy-executor/arch-std", "embassy-time/std", "critical-section/std"]
+default = ["std", "log", "time"]
+std = [
+  "embassy-executor/integrated-timers",
+  "embassy-executor/arch-std",
+  "embassy-time/std",
+  "critical-section/std",
+]
 test-utils = []
 time = []

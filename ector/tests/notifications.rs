@@ -1,8 +1,6 @@
 #![allow(dead_code)]
 #![allow(incomplete_features)]
 #![warn(unused_attributes)]
-#![feature(type_alias_impl_trait)]
-#![feature(async_fn_in_trait)]
 
 use ector::{
     testutils::{DummyActor, *},
