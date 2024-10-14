@@ -36,7 +36,7 @@ macro_rules! actor {
         ::ector::actor!($spawner, $name, $ty, $instance, $mutex, 1)
     }};
 
-    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:literal) => {{
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:expr) => {{
         ::ector::actor!(
             $spawner,
             $name,
@@ -47,7 +47,7 @@ macro_rules! actor {
         )
     }};
 
-    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:literal) => {{
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:expr) => {{
         static CONTEXT: ::ector::ActorContext<$ty, $mutex, $queue_size> =
             ::ector::ActorContext::new();
         ::ector::spawn_context!(
@@ -81,7 +81,7 @@ macro_rules! spawn_context {
         ::ector::spawn_context!($context, $spawner, $name, $ty, $instance, $mutex, 1)
     }};
 
-    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:literal) => {{
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:expr) => {{
         ::ector::spawn_context!(
             $context,
             $spawner,
@@ -93,7 +93,7 @@ macro_rules! spawn_context {
         )
     }};
 
-    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:literal) => {{
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty, $queue_size:expr) => {{
         #[embassy_executor::task]
         async fn $name(a: &'static ::ector::ActorContext<$ty, $mutex, $queue_size>, instance: $ty) {
             a.mount(instance).await
