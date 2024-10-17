@@ -187,7 +187,7 @@ fn transform_sig(sig: &mut Signature) {
         .predicates
         .push(parse_quote_spanned!(bound_span=> Self: 'm));
 
-    for (_, arg) in sig.inputs.iter_mut().enumerate() {
+    for arg in sig.inputs.iter_mut() {
         match arg {
             FnArg::Receiver(arg) => {
                 let s = arg.span();
