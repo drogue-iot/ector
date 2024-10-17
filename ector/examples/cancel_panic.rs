@@ -1,8 +1,5 @@
 //! Example where cancellation will cause a panic
 
-#![macro_use]
-#![allow(incomplete_features)]
-
 use {
     ector::*,
     embassy_time::{Duration, Timer},
