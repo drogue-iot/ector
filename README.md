@@ -37,9 +37,8 @@ impl Actor for Counter {
     /// The following arguments are provided:
     /// * The address to 'self'
     /// * An inbox from which the actor can receive messages
-    async fn on_mount<M>(&mut self, _: Address<Self::Message<'m>>, mut inbox: M) -> !
-        where M: Inbox<Self::Message<'m>> {
-    {
+    async fn on_mount<M>(&mut self, _: DynamicAddress<Self::Message>, mut inbox: M) -> !
+    where M: Inbox<Self::Message> {
         loop {
             // Await the next message and increment the counter
             let _ = inbox.next().await;
@@ -49,11 +48,11 @@ impl Actor for Counter {
 }
 
  /// The entry point of the application is using the embassy runtime.
- #[embassy::main]
- async fn main(spawner: embassy::executor::Spawner) {
+ #[embassy_executor::main]
+ async fn main(spawner: embassy_executor::Spawner) {
 
      // Mounting the Actor will spawn an embassy task
-     let addr = ector::actor!(spawner, counter, Counter, Counter { count  0 });
+     let addr = ector::actor!(spawner, counter, Counter, Counter { count: 0 });
 
      // The actor address may be used in any embassy task to communicate with the actor.
      let _ = addr.notify(Increment).await;
