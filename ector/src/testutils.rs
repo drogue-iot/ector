@@ -1,9 +1,9 @@
 use {
     crate::{Actor, DynamicAddress, Inbox},
-    atomic_polyfill::{AtomicBool, Ordering},
     core::{cell::RefCell, future::Future, pin::Pin},
     embassy_executor::{raw, Spawner},
     embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal},
+    portable_atomic::{AtomicBool, Ordering},
     static_cell::StaticCell,
     std::{cell::UnsafeCell, marker::PhantomData, vec::Vec},
 };
