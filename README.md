@@ -1,4 +1,4 @@
-# Ector is an open source async, no-alloc actor framework for embedded devices. 
+# Ector is an open source async, no-alloc actor framework for embedded devices
 
 [![CI](https://github.com/drogue-iot/ector/actions/workflows/ci.yaml/badge.svg)](https://github.com/drogue-iot/ector/actions/workflows/ci.yaml)
 [![crates.io](https://img.shields.io/crates/v/ector.svg)](https://crates.io/crates/ector)
@@ -16,10 +16,6 @@ Each actor has exclusive access to its own state and only communicates with othe
 ## Example
 
 ```rust
-#![macro_use]
-#![feature(generic_associated_types)]
-#![feature(type_alias_impl_trait)]
-
 use ector::*;
 
 /// A Counter that we wish to create an Actor for.
@@ -69,15 +65,14 @@ impl Actor for Counter {
 To build `ector`, you must install the [nightly rust toolchain](https://rustup.rs/). Once
 installed, you can build and test the framework by running
 
-~~~shell
+```shell
 cargo test
-~~~
+```
 
 ## Directory layout
 
 * `ector` - an actor framework
 * `macros` - macros used by drogue-device and application code
-
 
 ## Contributing
 
