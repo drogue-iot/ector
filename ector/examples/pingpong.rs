@@ -1,6 +1,3 @@
-#![macro_use]
-#![allow(incomplete_features)]
-
 use {
     ector::*,
     embassy_time::{Duration, Ticker},
