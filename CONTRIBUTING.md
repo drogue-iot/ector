@@ -36,9 +36,6 @@ In any case, you will need:
 
 * **A supported development kit** - Drogue device is about ... devices, so having a kit that you can run will help you test and validate code for peripherals (see [examples](examples/) for what boards we have working examples for).
 
-* **Rust Nightly** – Drogue-device relies on features only available in Rust nightly. You can use nightly either by running all
-  rust commands with `+nightly`, or just change default to nightly by running `rustup default nightly`.
-
 * **An IDE** – Whatever works best for you. Eclipse, Emacs, IntelliJ, Vim, … [^1] should all be usable with this
   project. We do not require any specific IDE. We also do not commit any IDE specific files either.
 

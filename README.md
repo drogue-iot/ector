@@ -61,8 +61,7 @@ impl Actor for Counter {
 
 ## Building
 
-To build `ector`, you must install the [nightly rust toolchain](https://rustup.rs/). Once
-installed, you can build and test the framework by running
+You can build and test the framework by running
 
 ```shell
 cargo test
