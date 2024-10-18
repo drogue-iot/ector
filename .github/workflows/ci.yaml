@@ -16,6 +16,12 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - nightly-2023-11-01
+
     steps:
       - uses: actions/checkout@v3
 
