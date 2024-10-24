@@ -15,7 +15,7 @@ Each actor has exclusive access to its own state and only communicates with othe
 
 ## Example
 
-```rust
+```rust ignore
 use ector::*;
 
 /// A Counter that we wish to create an Actor for.
