@@ -1,6 +1,5 @@
 #![allow(incomplete_features)]
-#![cfg(feature = "nightly")]
-#![feature(proc_macro_diagnostic)]
+#![cfg_attr(feature = "nightly", feature(proc_macro_diagnostic))]
 
 extern crate proc_macro;
 mod actor;
