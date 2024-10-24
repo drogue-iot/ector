@@ -19,6 +19,58 @@ pub mod mutex {
 pub mod testutils;
 
 /// Spawn an actor given a spawner and the actors name, type and instance.
+///
+/// actor! is a macro that simplifies the process of spawning an actor. It creates a new ActorContext and spawns the actor with the given spawner.
+///
+/// # Arguments
+///
+/// `actor!(spawner, name, type, instance, [mutex type], [queue size]);`
+///
+/// |             |                                                                                                        |
+/// | ----------- | ------------------------------------------------------------------------------------------------------ |
+/// | spawner     | The spawner to use to spawn the actor (i.e. embassy_executor::Spawner)                                 |
+/// | name        | The name of the actor, used to generate the task name                                                  |
+/// | type        | The type of the actor, must implement the Actor trait                                                  |
+/// | instance    | The instance of the actor to spawn                                                                     |
+/// | mutex type  | The type of mutex to use for the actor. (defaults to embassy_sync::blocking_mutex::raw::NoopRawMutex)  |
+/// | queue size  | The size of the actor's message queue. (defaults to 1)                                                 |
+///
+///
+/// # Example
+///
+/// ```rust ignore
+/// use ector::*;
+///
+/// type Addr = DynamicAddress<Request<String, String>>;
+///
+/// struct Server;
+///
+/// impl Actor for Server {
+///     type Message = Request<String, String>;
+///     async fn on_mount<M>(&mut self, _: Addr, mut inbox: M) -> !
+///     where
+///        M: Inbox<Self::Message>,
+///    {
+///        println!("Server started!");
+///
+///        loop {
+///            let motd = inbox.next().await;
+///            let m = motd.as_ref().clone();
+///            motd.reply(m).await;
+///        }
+///    }
+/// }
+///
+/// #[embassy_executor::main]
+/// async fn main(s: embassy_executor::Spawner) {
+///     let server_addr: Addr = actor!(s, server, Server, Server).into();
+///     loop {
+///          let r = server_addr.request("Hello".to_string()).await;
+///          println!("Server returned {}", r);
+///     }
+/// }
+///
+/// ```
 #[macro_export]
 macro_rules! actor {
     ($spawner:ident, $name:ident, $ty:ty, $instance:expr) => {{
