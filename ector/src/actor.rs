@@ -84,7 +84,12 @@ impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
 
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
-        let reply_to = unsafe { core::mem::transmute(&sender) };
+        let reply_to = unsafe {
+            core::mem::transmute::<
+                &embassy_sync::channel::DynamicSender<'_, R>,
+                &embassy_sync::channel::DynamicSender<'_, R>,
+            >(&sender)
+        };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
         let res = channel.receive().await;
@@ -121,7 +126,12 @@ where
 
         // We guarantee that channel lives until we've been notified on it, at which
         // point its out of reach for the replier.
-        let reply_to = unsafe { core::mem::transmute(&sender) };
+        let reply_to = unsafe {
+            core::mem::transmute::<
+                &embassy_sync::channel::DynamicSender<'_, R>,
+                &embassy_sync::channel::DynamicSender<'_, R>,
+            >(&sender)
+        };
         let message = Request::new(message, reply_to);
         self.notify(message).await;
         let res = channel.receive().await;
