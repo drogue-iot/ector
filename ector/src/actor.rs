@@ -187,13 +187,27 @@ impl<M, R> Request<M, R> {
         }
     }
 
+    /// Process the message using a closure.
+    ///
+    /// The return value of the closure is used as the response.
     pub async fn process<F: FnOnce(M) -> R>(mut self, f: F) {
         let reply = f(self.message.take().unwrap());
         self.reply_to.send(reply).await;
     }
 
+    /// Reply to the request using the provided value.
     pub async fn reply(self, value: R) {
         self.reply_to.send(value).await
+    }
+
+    /// Get a reference to the underlying message
+    pub fn get(&self) -> &M {
+        self.message.as_ref().unwrap()
+    }
+
+    /// Get a mutable reference to the underlying message
+    pub fn get_mut(&mut self) -> &mut M {
+        self.message.as_mut().unwrap()
     }
 }
 
