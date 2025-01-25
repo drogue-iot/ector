@@ -64,7 +64,7 @@ pub trait ActorRequest<M, R> {
     async fn request(&self, message: M) -> R;
 }
 
-impl<'a, M> ActorAddress<M> for DynamicSender<'a, M> {
+impl<M> ActorAddress<M> for DynamicSender<'_, M> {
     fn try_notify(&self, message: M) -> Result<(), M> {
         self.try_send(message).map_err(|e| match e {
             TrySendError::Full(m) => m,
@@ -76,7 +76,7 @@ impl<'a, M> ActorAddress<M> for DynamicSender<'a, M> {
     }
 }
 
-impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
+impl<M, R> ActorRequest<M, R> for DynamicSender<'_, Request<M, R>> {
     async fn request(&self, message: M) -> R {
         let channel: Channel<NoopRawMutex, R, 1> = Channel::new();
         let sender: DynamicSender<'_, R> = channel.sender().into();
@@ -99,7 +99,7 @@ impl<'a, M, R> ActorRequest<M, R> for DynamicSender<'a, Request<M, R>> {
     }
 }
 
-impl<'a, M, MUT, const N: usize> ActorAddress<M> for Sender<'a, MUT, M, N>
+impl<M, MUT, const N: usize> ActorAddress<M> for Sender<'_, MUT, M, N>
 where
     MUT: RawMutex,
 {
@@ -114,7 +114,7 @@ where
     }
 }
 
-impl<'a, M, R, MUT, const N: usize> ActorRequest<M, R> for Sender<'a, MUT, Request<M, R>, N>
+impl<M, R, MUT, const N: usize> ActorRequest<M, R> for Sender<'_, MUT, Request<M, R>, N>
 where
     M: 'static,
     MUT: RawMutex + 'static,
