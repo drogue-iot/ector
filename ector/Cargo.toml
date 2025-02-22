@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "ector"
-version = "0.6.0"
+version = "0.7.0"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."
 documentation = "https://docs.rs/ector"
 readme = "../README.md"

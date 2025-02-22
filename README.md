@@ -3,7 +3,6 @@
 [![CI](https://github.com/drogue-iot/ector/actions/workflows/ci.yaml/badge.svg)](https://github.com/drogue-iot/ector/actions/workflows/ci.yaml)
 [![crates.io](https://img.shields.io/crates/v/ector.svg)](https://crates.io/crates/ector)
 [![docs.rs](https://docs.rs/ector/badge.svg)](https://docs.rs/ector)
-[![Matrix](https://img.shields.io/matrix/drogue-iot:matrix.org)](https://matrix.to/#/#drogue-iot:matrix.org)
 
 Ector is an open source async, no-alloc actor framework for embedded devices. It integrates with [embassy](https://github.com/embassy-rs/embassy), the embedded async project.
 
@@ -70,16 +69,8 @@ cargo test
 ## Directory layout
 
 * `ector` - an actor framework
-* `macros` - macros used by drogue-device and application code
+* `macros` - macros used by application code to simplify
 
 ## Contributing
 
 See the document [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Community
-
-* [Drogue IoT Matrix Chat Room](https://matrix.to/#/#drogue-iot:matrix.org)
-* We have bi-weekly calls at 9:00 AM (GMT). [Check the calendar](https://calendar.google.com/calendar/u/0/embed?src=ofuctjec399jr6kara7n0uidqg@group.calendar.google.com&pli=1) to see which week we are having the next call, and feel free to join!
-* [Drogue IoT Forum](https://discourse.drogue.io/)
-* [Drogue IoT YouTube channel](https://www.youtube.com/channel/UC7GZUy2hKidvY6V_3QZfCcA)
-* [Follow us on Twitter!](https://twitter.com/DrogueIoT)
