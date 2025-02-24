@@ -35,6 +35,7 @@ embassy-executor = { version = "0.7", default-features = false, features = [
 embassy-time = { version = "0.4", default-features = false, features = [
     "std",
 ] }
+embassy-futures = "0.1.1"
 futures = { version = "0.3.31", default-features = false, features = [
     "executor",
 ] }
