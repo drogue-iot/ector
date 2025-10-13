@@ -152,7 +152,8 @@ macro_rules! spawn_context {
         }
 
         let address = $context.address();
-        $spawner.spawn($name(&$context, $instance)).unwrap();
+        let task = $name(&$context, $instance).unwrap();
+        $spawner.spawn(task);
         address
     }};
 }
