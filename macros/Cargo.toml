@@ -1,5 +1,5 @@
 [package]
-edition = "2021"
+edition = "2024"
 name = "ector-macros"
 version = "0.5.1"
 description = "Ector is an open source async, no-alloc actor framework for embedded devices."

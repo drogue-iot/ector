@@ -2,7 +2,7 @@ use {
     ector::*,
     embassy_time::{Duration, Ticker},
     futures::{
-        future::{join, select, Either},
+        future::{Either, join, select},
         pin_mut,
     },
 };

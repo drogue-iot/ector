@@ -84,9 +84,7 @@ macro_rules! actor {
         )
     }};
 
-    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{
-        ::ector::actor!($spawner, $name, $ty, $instance, $mutex, 1)
-    }};
+    ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{ ::ector::actor!($spawner, $name, $ty, $instance, $mutex, 1) }};
 
     ($spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:expr) => {{
         ::ector::actor!(
@@ -129,9 +127,7 @@ macro_rules! spawn_context {
         )
     }};
 
-    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{
-        ::ector::spawn_context!($context, $spawner, $name, $ty, $instance, $mutex, 1)
-    }};
+    ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $mutex:ty) => {{ ::ector::spawn_context!($context, $spawner, $name, $ty, $instance, $mutex, 1) }};
 
     ($context:ident, $spawner:ident, $name:ident, $ty:ty, $instance:expr, $queue_size:expr) => {{
         ::ector::spawn_context!(

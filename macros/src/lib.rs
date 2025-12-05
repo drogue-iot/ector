@@ -5,7 +5,7 @@ extern crate proc_macro;
 mod actor;
 
 use {
-    actor::{generate_actor, Item},
+    actor::{Item, generate_actor},
     proc_macro::TokenStream,
     quote::quote,
     syn::{
