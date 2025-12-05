@@ -38,7 +38,7 @@ pub mod qmh_actor {
     use core::future::pending;
     use ector::{mutex::NoopRawMutex, *};
     use embassy_executor::SpawnError;
-    use embassy_futures::select::{select, Either};
+    use embassy_futures::select::{Either, select};
     use embassy_sync::channel::Sender;
     use embassy_time::{Duration, Instant, Timer};
 

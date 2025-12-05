@@ -1,14 +1,14 @@
 use {
     proc_macro2::{Span, TokenStream},
-    quote::{quote, quote_spanned, ToTokens},
+    quote::{ToTokens, quote, quote_spanned},
     syn::{
+        Attribute, Block, FnArg, GenericArgument, GenericParam, ImplItem, ImplItemType, ItemImpl,
+        Lifetime, Pat, Receiver, Signature, Token, Type, TypeReference, WhereClause,
         parse::{Error, Parse, ParseStream, Result},
         parse_quote, parse_quote_spanned,
         punctuated::Punctuated,
         spanned::Spanned,
         visit_mut::{self, VisitMut},
-        Attribute, Block, FnArg, GenericArgument, GenericParam, ImplItem, ImplItemType, ItemImpl,
-        Lifetime, Pat, Receiver, Signature, Token, Type, TypeReference, WhereClause,
     },
 };
 
@@ -96,11 +96,11 @@ impl VisitMut for CollectLifetimes {
         visit_mut::visit_type_reference_mut(self, ty);
     }
 
-    fn visit_generic_argument_mut(&mut self, gen: &mut GenericArgument) {
-        if let GenericArgument::Lifetime(lifetime) = gen {
+    fn visit_generic_argument_mut(&mut self, gen_args: &mut GenericArgument) {
+        if let GenericArgument::Lifetime(lifetime) = gen_args {
             self.visit_lifetime(lifetime);
         }
-        visit_mut::visit_generic_argument_mut(self, gen);
+        visit_mut::visit_generic_argument_mut(self, gen_args);
     }
 }
 
