@@ -17,14 +17,15 @@ doctest = false
 [dependencies]
 embassy-executor = { version = "0.9", default-features = false }
 embassy-sync = { version = "0.7", default-features = false }
-portable-atomic = { version = "1.11", default-features = false }
+portable-atomic = { version = "1", default-features = false }
 
 log = { version = "0.4", optional = true }
-defmt = { version = "1.0.1", optional = true }
+defmt = { version = "1", optional = true }
+
+futures = { version = "0.3", default-features = false }
+static_cell = "2"
 
 ector-macros = { version = "0.5.1", path = "../macros" }
-futures = { version = "0.3", default-features = false }
-static_cell = "2.1"
 
 
 [dev-dependencies]
