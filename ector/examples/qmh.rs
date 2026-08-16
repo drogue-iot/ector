@@ -70,7 +70,7 @@ pub mod qmh_actor {
     ) -> Result<ActorInbox<Message>, SpawnError> {
         static CONTEXT: ActorContext<ActorQMH> = ActorContext::new();
         let inbox = CONTEXT.address();
-        spawner.spawn(actor_task(&CONTEXT, ActorQMH::new(spawner, config, inbox)))?;
+        spawner.spawn(actor_task(&CONTEXT, ActorQMH::new(spawner, config, inbox))?);
         Ok(inbox)
     }
 
