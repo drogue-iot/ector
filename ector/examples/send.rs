@@ -19,7 +19,7 @@ async fn main(s: embassy_executor::Spawner) {
     let send_spawner = s.make_send();
     //  CriticalSectionRawMutex makes the address `Send`
     let server_addr = actor!(s, server_0, Server, Server, CriticalSectionRawMutex);
-    send_spawner.spawn(send_task(server_addr)).unwrap();
+    send_spawner.spawn(send_task(server_addr).unwrap());
 }
 
 pub struct Server;
